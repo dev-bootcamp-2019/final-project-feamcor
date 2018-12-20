@@ -1,6 +1,6 @@
-pragma solidity ^0.5.1;
+pragma solidity 0.5.2;
 
-/// @author Fábio Corrêa (feamcor@gmail.com)
+/// @author Fábio Corrêa <feamcor@gmail.com>
 /// @title A simple decentralized ticket store on Ethereum
 contract Bileto {
     enum StoreStatus {
@@ -12,8 +12,8 @@ contract Bileto {
 
     struct Store {
         address owner;
-        address admin;
         uint eventCounter;
+        uint purchaseCounter;
         StoreStatus status;
     }
 
@@ -27,7 +27,6 @@ contract Bileto {
 
     struct Event {
         address organizer;
-        address admin;
         string name;
         string timestamp;
         uint ticketsOnSale;
@@ -36,7 +35,6 @@ contract Bileto {
         uint ticketsSold;
         uint eventBalance;
         uint storeBalance;
-        uint purchaseCounter;
         EventStatus status;
     }
 
@@ -59,36 +57,29 @@ contract Bileto {
 
     Store public store;
     mapping(uint => Event) public events;
-    mapping(uint => mapping(uint => Purchase)) public purchases;
+    mapping(uint => Purchase) public purchases;
 
-    event StoreCreated(address _by, address _admin);
-    event StoreOpen(address _by);
-    event StoreClosed(address _by);
-    event StoreShutdown(address _by);
-    event StoreAdminChanged(address _by, address _admin);
+    event StoreCreated(address indexed _by);
+    event StoreOpen(address indexed _by);
+    event StoreClosed(address indexed _by);
+    event StoreShutdown(address indexed _by);
 
-    event EventCreated(address _by, uint _eventId);
-    event EventCancelled(address _by, uint _eventId);
+    event EventCreated(address indexed _by, uint indexed _eventId);
+    event EventCancelled(address indexed _by, uint indexed _eventId);
 
-    event TicketSalesStarted(address _by, uint _eventId);
-    event TicketSalesSuspended(address _by, uint _eventId);
-    event TicketSalesEnded(address _by, uint _eventId);
+    event TicketSalesStarted(address indexed _by, uint indexed _eventId);
+    event TicketSalesSuspended(address indexed _by, uint indexed _eventId);
+    event TicketSalesEnded(address indexed _by, uint indexed _eventId);
 
-    event PurchaseCompleted(address _by, uint _eventId, uint _purchaseId);
-    event PurchaseReverted(address _by, uint _eventId, uint _purchaseId);
+    event PurchaseCompleted(address indexed _by, uint indexed _eventId, uint indexed _purchaseId);
+    event PurchaseReverted(address indexed _by, uint indexed _eventId, uint indexed _purchaseId);
 
-    event CustomerCheckedIn(address _by, uint _eventId, uint _purchaseId);
+    event CustomerCheckedIn(address indexed _by, uint indexed _eventId, uint indexed _purchaseId);
 
-    modifier onlyStoreOwner() {
+    modifier onlyOwner() {
         require(msg.sender == store.owner,
             "only owner can execute this action");
         _; 
-    }
-
-    modifier onlyStoreAdmin() {
-        require(msg.sender == store.owner || msg.sender == store.admin,
-            "only owner or admin can execute this action");
-        _;
     }
 
     modifier storeNotShutdown() {
@@ -109,30 +100,6 @@ contract Bileto {
         _;
     }
 
-    modifier validPercentage(uint _percentage) {
-        require(_percentage >= 0 && _percentage <= 10000,
-            "percentage must be between 000 and 10000");
-        _; 
-    }
-
-    modifier notEmpty(string memory _string) {
-        require(bytes(_string).length != 0,
-            "string must not be empty");
-        _;
-    }
-
-    modifier notZero(uint _value) {
-        require(_value > 0,
-            "value must be greater than zero");
-        _;
-    }
-
-    modifier validAddress(address _address) {
-        require(_address != address(0x0),
-            "invalid address");
-        _;
-    }
-
     modifier validEvent(uint _eventId) {
         require(_eventId <= store.eventCounter,
             "invalid event id");
@@ -145,57 +112,48 @@ contract Bileto {
         _; 
     }
 
-    modifier onlyEventAdmin(uint _eventId) {
-        require(msg.sender == events[_eventId].organizer || msg.sender == events[_eventId].admin,
-            "only owner or admin can execute this action");
-        _;
-    }
-
     modifier eventNotCancelled(uint _eventId) {
         require(events[_eventId].status != EventStatus.Cancelled,
             "event was cancelled");
         _;
     }
 
-    /// @notice Create a store with its respective owner, administrator and fee.
-    /// @param _admin address of the administrator's account
-    /// @dev store storeOwner is set by the account who created the store
-    constructor(address _admin) public validAddress(_admin) {
+    modifier eventOnSale(uint _eventId) {
+        require(events[_eventId].status == EventStatus.TicketSalesStarted,
+            "tickets not on sale for this event");
+        _;
+    }
+
+    /// @notice Create a store with its respective owner.
+    /// @dev store owner is set by the account who created the store
+    constructor() public {
         store.owner = msg.sender;
-        store.admin = _admin;
         store.eventCounter = 0;
         store.status = StoreStatus.Created;
-        emit StoreCreated(store.owner, store.admin);
+        emit StoreCreated(store.owner);
     }
 
     function() external payable {
         require(msg.data.length == 0, "only funds transfer accepted");
     }
 
-    function openStore() external onlyStoreAdmin storeNotShutdown storeClosed {
+    function openStore() external onlyOwner storeNotShutdown {
         store.status = StoreStatus.Open;
         emit StoreOpen(msg.sender);
     } 
 
-    function closeStore() external onlyStoreAdmin storeNotShutdown storeOpen {
+    function closeStore() external onlyOwner storeOpen {
         store.status = StoreStatus.Closed;
         emit StoreClosed(msg.sender);
     }
 
-    function shutdownStore() external onlyStoreOwner storeNotShutdown {
+    function shutdownStore() external onlyOwner storeNotShutdown {
         store.status = StoreStatus.Shutdown;
         emit StoreShutdown(msg.sender);
     }
 
-    function changeStoreAdmin(address _admin) external onlyStoreOwner storeNotShutdown {
-        address _previous = store.admin;
-        store.admin = _admin;
-        emit StoreAdminChanged(_previous, _admin);
-    }
-
     function createEvent(
         address _organizer,
-        address _admin,
         string calldata _name,
         string calldata _timestamp,
         uint _ticketsOnSale,
@@ -203,39 +161,32 @@ contract Bileto {
         uint _storeIncentive
     )
         external
-        onlyStoreAdmin
-        storeNotShutdown
+        onlyOwner
         storeOpen
-        validAddress(_organizer)
-        validAddress(_admin)
-        notEmpty(_name)
-        notEmpty(_timestamp)
-        notZero(_ticketsOnSale)
-        validPercentage(_storeIncentive)
-        returns (uint)
+        returns (uint _eventId)
     {
+        require(_organizer != address(0x0), "invalid organizer address");
+        require(bytes(_name).length != 0, "event name must not be empty");
+        require(bytes(_timestamp).length != 0, "event creation timestamp must not be empty");
+        require(_ticketsOnSale > 0, "number of tickets on sale cannot be zero");
+        require(_storeIncentive >= 0 && _storeIncentive <= 10000, "invalid store incentive");
         store.eventCounter += 1;
-        events[store.eventCounter].organizer = _organizer;
-        events[store.eventCounter].admin = _admin;
-        events[store.eventCounter].name = _name;
-        events[store.eventCounter].timestamp = _timestamp;
-        events[store.eventCounter].ticketsOnSale = _ticketsOnSale;
-        events[store.eventCounter].ticketPrice = _ticketPrice;
-        events[store.eventCounter].storeIncentive = _storeIncentive;
-        events[store.eventCounter].ticketsSold = 0;
-        events[store.eventCounter].eventBalance = 0;
-        events[store.eventCounter].storeBalance = 0;
-        events[store.eventCounter].purchaseCounter = 0;
-        events[store.eventCounter].status = EventStatus.Created;
-        emit EventCreated(msg.sender, store.eventCounter);
-        return store.eventCounter;
+        _eventId = store.eventCounter;
+        events[_eventId].organizer = _organizer;
+        events[_eventId].name = _name;
+        events[_eventId].timestamp = _timestamp;
+        events[_eventId].ticketsOnSale = _ticketsOnSale;
+        events[_eventId].ticketPrice = _ticketPrice;
+        events[_eventId].storeIncentive = _storeIncentive;
+        events[_eventId].status = EventStatus.Created;
+        emit EventCreated(msg.sender, _eventId);
     }
 
     function startTicketSales(uint _eventId)
         external
         storeOpen
         validEvent(_eventId)
-        onlyEventAdmin(_eventId)
+        onlyOrganizer(_eventId)
         eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.Created ||
@@ -249,7 +200,7 @@ contract Bileto {
         external
         storeOpen
         validEvent(_eventId)
-        onlyEventAdmin(_eventId)
+        onlyOrganizer(_eventId)
         eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.TicketSalesStarted,
@@ -262,7 +213,7 @@ contract Bileto {
         external
         storeOpen
         validEvent(_eventId)
-        onlyEventAdmin(_eventId)
+        onlyOrganizer(_eventId)
         eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.TicketSalesStarted ||
@@ -276,7 +227,7 @@ contract Bileto {
         external
         storeOpen
         validEvent(_eventId)
-        onlyEventAdmin(_eventId)
+        onlyOrganizer(_eventId)
         eventNotCancelled(_eventId)
     {
         events[_eventId].status = EventStatus.Cancelled;
@@ -295,28 +246,26 @@ contract Bileto {
         payable
         storeOpen
         validEvent(_eventId)
-        eventNotCancelled(_eventId)
-        notZero(_quantity)
-        notEmpty(_buyerId)
-        notEmpty(_buyerName)
-        notEmpty(_timestamp)
-        notEmpty(_externalId)
-        returns (uint)
+        eventOnSale(_eventId)
+        returns (uint _purchaseId)
     {
-        require(events[_eventId].status == EventStatus.TicketSalesStarted,
-            "tickets not on sale for this event");
-        require(msg.value >= events[_eventId].ticketPrice * _quantity,
-            "not enough balance for purchase");
-        events[_eventId].purchaseCounter += 1;
-        purchases[_eventId][events[_eventId].purchaseCounter].buyer = msg.sender;
-        purchases[_eventId][events[_eventId].purchaseCounter].buyerId = _buyerId;
-        purchases[_eventId][events[_eventId].purchaseCounter].buyerName = _buyerName;
-        purchases[_eventId][events[_eventId].purchaseCounter].timestamp = _timestamp;
-        purchases[_eventId][events[_eventId].purchaseCounter].externalId = _externalId;
-        purchases[_eventId][events[_eventId].purchaseCounter].quantity = _quantity;
-        purchases[_eventId][events[_eventId].purchaseCounter].total = events[_eventId].ticketPrice * _quantity;
-        purchases[_eventId][events[_eventId].purchaseCounter].status = PurchaseStatus.Completed;
-        emit PurchaseCompleted(msg.sender, _eventId, events[_eventId].purchaseCounter);
-        return events[_eventId].purchaseCounter;
+        require(_quantity > 0, "quantity must be greater than zero");
+        require(bytes(_buyerId).length != 0, "buyer ID must not be empty");
+        require(bytes(_buyerName).length != 0, "buyer name must not be empty");
+        require(bytes(_timestamp).length != 0, "purchase timestamp must not be empty");
+        require(bytes(_externalId).length != 0, "purchase external ID must not be empty");
+        uint _total = _quantity * events[_eventId].ticketPrice;
+        require(msg.value >= _total, "not enough balance for purchase");
+        store.purchaseCounter += 1;
+        _purchaseId = store.purchaseCounter;
+        purchases[_purchaseId].buyer = msg.sender;
+        purchases[_purchaseId].buyerId = _buyerId;
+        purchases[_purchaseId].buyerName = _buyerName;
+        purchases[_purchaseId].timestamp = _timestamp;
+        purchases[_purchaseId].externalId = _externalId;
+        purchases[_purchaseId].quantity = _quantity;
+        purchases[_purchaseId].total = _total;
+        purchases[_purchaseId].status = PurchaseStatus.Completed;
+        emit PurchaseCompleted(msg.sender, _eventId, _purchaseId);
     }
 }
