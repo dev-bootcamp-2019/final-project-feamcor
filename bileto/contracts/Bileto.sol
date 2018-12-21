@@ -4,10 +4,11 @@ import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/drafts/Counter.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../node_modules/openzeppelin-solidity/contracts/utils/Address.sol";
+import "../node_modules/openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 
 /// @author Fábio Corrêa <feamcor@gmail.com>
 /// @title A simple decentralized ticket store on Ethereum
-contract Bileto is Ownable {
+contract Bileto is Ownable, ReentrancyGuard {
     enum StoreStatus {
         Created,
         Open,
@@ -19,7 +20,8 @@ contract Bileto is Ownable {
         Created,
         SalesStarted,
         SalesSuspended,
-        SalesEnded,
+        SalesFinished,
+        Completed,
         Settled,
         Cancelled
     }
@@ -40,28 +42,30 @@ contract Bileto is Ownable {
         uint ticketPrice;
         uint ticketsOnSale;
         uint ticketsSold;
+        uint ticketsLeft;
         uint ticketsCancelled;
         uint ticketsRefunded;
         uint ticketsCheckedIn;
         uint eventBalance;
-        uint storeBalance;
+        uint refundableBalance;
     }
 
     struct Purchase {
         PurchaseStatus status;
         bytes32 externalId;
-        uint externalTimestamp;
-        address buyer;
-        bytes32 buyerId;
+        uint timestamp;
+        address customer;
+        bytes32 customerId;
         uint quantity;
         uint total;
         uint eventId;
     }
 
     uint constant private TIME_WINDOW = 15 * 60;
-    
+
     StoreStatus public storeStatus;
-    
+    uint public storeRefundableBalance;
+
     Counter.Counter public eventsCounter;
     mapping(uint => Event) public events;
 
@@ -76,65 +80,47 @@ contract Bileto is Ownable {
     event EventCreated(uint indexed _id, bytes32 indexed _extId, address indexed _by);
     event EventSalesStarted(uint indexed _id, bytes32 indexed _extId, address indexed _by);
     event EventSalesSuspended(uint indexed _id, bytes32 indexed _extId, address indexed _by);
-    event EventSalesEnded(uint indexed _id, bytes32 indexed _extId, address indexed _by);
-    event EventSettled(uint indexed _id, bytes32 indexed _extId, address indexed _by);
+    event EventSalesFinished(uint indexed _id, bytes32 indexed _extId, address indexed _by);
+    event EventCompleted(uint indexed _id, bytes32 indexed _extId, address indexed _by);
+    event EventSettled(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _settlement);
     event EventCancelled(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
     event PurchaseCompleted(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
     event PurchaseCancelled(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
     event PurchaseRefunded(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
-    event CustomerCheckedIn(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
 
-    modifier storeNotClosed() {
-        require(storeStatus != StoreStatus.Closed, "store cannot be closed");
-        _;
-    }
+    event CustomerCheckedIn(uint indexed _event_id, uint indexed _purchaseId, address indexed _by);
 
     modifier storeOpen() {
         require(storeStatus == StoreStatus.Open, "store must be open");
         _;
     }
 
-    modifier storeSuspended() {
-        require(storeStatus == StoreStatus.Suspended, "store must be suspended");
-        _;
-    }
-
     modifier onlyOrganizer(uint _eventId) {
-        require(_eventId <= eventsCounter.current && msg.sender == events[_eventId].organizer,
+        require(_eventId <= eventsCounter.current &&
+            msg.sender == events[_eventId].organizer,
             "must be organizer to proceed (or invalid event)");
-        _; 
-    }
-
-    modifier validEvent(uint _eventId) {
-        require(_eventId <= eventsCounter.current, "event must be valid");
-        _;
-    }
-
-    modifier eventNotCancelled(uint _eventId) {
-        require(_eventId <= eventsCounter.current && events[_eventId].status != EventStatus.Cancelled,
-            "event cannot be cancelled (or invalid event)");
         _;
     }
 
     modifier eventOnSale(uint _eventId) {
-        require(_eventId <= eventsCounter.current && events[_eventId].status == EventStatus.SalesStarted,
+        require(_eventId <= eventsCounter.current &&
+            events[_eventId].status == EventStatus.SalesStarted,
             "ticket sales must be started (or invalid event)");
         _;
     }
 
     modifier purchaseCompleted(uint _purchaseId) {
-        require(_purchaseId <= purchasesCounter.current && purchases[_purchaseId].status == PurchaseStatus.Completed,
+        require(_purchaseId <= purchasesCounter.current &&
+            purchases[_purchaseId].status == PurchaseStatus.Completed,
             "purchase must be completed (or invalid purchase)");
         _;
     }
 
-    modifier eventOrPurchaseCancelled(uint _eventId, uint _purchaseId) {
-        require(_eventId <= eventsCounter.current &&
-            _purchaseId <= purchasesCounter.current &&
-            (events[_eventId].status == EventStatus.Cancelled ||
-            purchases[_purchaseId].status == PurchaseStatus.Cancelled),
-            "event or purchase must be cancelled (or invalid event/purchase)");
+    modifier purchaseCancelled(uint _purchaseId) {
+        require(_purchaseId <= purchasesCounter.current &&
+            purchases[_purchaseId].status == PurchaseStatus.Cancelled,
+            "purchase must be cancelled (or invalid purchase)");
         _;
     }
 
@@ -149,17 +135,22 @@ contract Bileto is Ownable {
         require(msg.data.length == 0, "only funds transfer accepted");
     }
 
-    function openStore() external onlyOwner storeNotClosed {
+    function openStore() external nonReentrant onlyOwner {
+        require(storeStatus == StoreStatus.Created ||
+            storeStatus == StoreStatus.Suspended,
+            "store cannot be opened");
         storeStatus = StoreStatus.Open;
         emit StoreOpen(owner());
-    } 
+    }
 
-    function suspendStore() external onlyOwner storeOpen {
+    function suspendStore() external nonReentrant onlyOwner storeOpen {
         storeStatus = StoreStatus.Suspended;
         emit StoreSuspended(owner());
     }
 
-    function closeStore() external onlyOwner storeNotClosed {
+    function closeStore() external nonReentrant onlyOwner {
+        require(storeStatus != StoreStatus.Closed, "store cannot be closed");
+        require(storeRefundableBalance == 0, "store has refundable balance");
         storeStatus = StoreStatus.Closed;
         emit StoreClosed(owner());
     }
@@ -173,6 +164,7 @@ contract Bileto is Ownable {
         uint _ticketsOnSale
     )
         external
+        nonReentrant
         onlyOwner
         storeOpen
         returns (uint _eventId)
@@ -190,14 +182,15 @@ contract Bileto is Ownable {
         events[_eventId].storeIncentive = _storeIncentive;
         events[_eventId].ticketPrice = _ticketPrice;
         events[_eventId].ticketsOnSale = _ticketsOnSale;
+        events[_eventId].ticketsLeft = _ticketsOnSale;
         emit EventCreated(_eventId, events[_eventId].externalId, msg.sender);
     }
 
     function startTicketSales(uint _eventId)
         external
+        nonReentrant
         storeOpen
         onlyOrganizer(_eventId)
-        eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.Created ||
             events[_eventId].status == EventStatus.SalesSuspended,
@@ -208,9 +201,9 @@ contract Bileto is Ownable {
 
     function suspendTicketSales(uint _eventId)
         external
+        nonReentrant
         storeOpen
         onlyOrganizer(_eventId)
-        eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.SalesStarted,
             "cannot suspend ticket sale for this event");
@@ -220,23 +213,53 @@ contract Bileto is Ownable {
 
     function endTicketSales(uint _eventId)
         external
+        nonReentrant
         storeOpen
         onlyOrganizer(_eventId)
-        eventNotCancelled(_eventId)
     {
         require(events[_eventId].status == EventStatus.SalesStarted ||
             events[_eventId].status == EventStatus.SalesSuspended,
             "cannot end ticket sale for this event");
-        events[_eventId].status = EventStatus.SalesEnded;
-        emit EventSalesEnded(_eventId, events[_eventId].externalId, msg.sender);
+        events[_eventId].status = EventStatus.SalesFinished;
+        emit EventSalesFinished(_eventId, events[_eventId].externalId, msg.sender);
+    }
+
+    function completeEvent(uint _eventId)
+        external
+        nonReentrant
+        storeOpen
+        onlyOrganizer(_eventId)
+    {
+        require(events[_eventId].status == EventStatus.SalesFinished, "cannot complete event");
+        events[_eventId].status = EventStatus.Completed;
+        emit EventCompleted(_eventId, events[_eventId].externalId, msg.sender);
+    }
+
+    function settleEvent(uint _eventId)
+        external
+        nonReentrant
+        storeOpen
+        onlyOwner
+    {
+        require(events[_eventId].status == EventStatus.Completed, "cannot settle event");
+        events[_eventId].status = EventStatus.Settled;
+        uint _eventBalance = events[_eventId].eventBalance;
+        uint _storeIncentive = events[_eventId].storeIncentive;
+        uint _storeBalance = SafeMath.div(SafeMath.mul(_eventBalance, _storeIncentive), 10000);
+        uint _settlement = SafeMath.sub(_eventBalance, _storeBalance);
+        // TO-DO: transfer settlement to organizer account
+        emit EventSettled(_eventId, events[_eventId].externalId, msg.sender, _settlement);
     }
 
     function cancelEvent(uint _eventId)
         external
+        nonReentrant
         storeOpen
         onlyOrganizer(_eventId)
-        eventNotCancelled(_eventId)
     {
+        require(events[_eventId].status == EventStatus.Created ||
+            events[_eventId].status == EventStatus.SalesFinished,
+            "cannot cancel event");
         events[_eventId].status = EventStatus.Cancelled;
         emit EventCancelled(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -246,66 +269,93 @@ contract Bileto is Ownable {
         uint _quantity,
         string calldata _externalId,
         uint _timestamp,
-        string calldata _buyerId
+        string calldata _customerId
     )
         external
         payable
+        nonReentrant
         storeOpen
         eventOnSale(_eventId)
         returns (uint _purchaseId)
     {
         require(!Address.isContract(msg.sender), "a contract cannot purchase tickets");
         require(_quantity > 0, "quantity must be greater than zero");
+        require(_quantity <= events[_eventId].ticketsLeft, "not enough tickets left");
         require(bytes(_externalId).length != 0, "purchase external ID must not be empty");
         require(_timestamp >= now - TIME_WINDOW && _timestamp <= now + TIME_WINDOW, "invalid purchase timestamp");
-        require(bytes(_buyerId).length != 0, "buyer ID must not be empty");
+        require(bytes(_customerId).length != 0, "customer ID cannot be empty");
         require(msg.value == SafeMath.mul(_quantity, events[_eventId].ticketPrice), "funds not equal to total");
         _purchaseId = Counter.next(purchasesCounter);
         purchases[_purchaseId].status = PurchaseStatus.Completed;
-        purchases[_purchaseId].externalId = keccak256(bytes(_externalId));
-        purchases[_purchaseId].externalTimestamp = _timestamp;
-        purchases[_purchaseId].buyer = msg.sender;
-        purchases[_purchaseId].buyerId = keccak256(bytes(_buyerId));
-        purchases[_purchaseId].quantity = _quantity;
-        purchases[_purchaseId].total = SafeMath.mul(_quantity, events[_eventId].ticketPrice);
         purchases[_purchaseId].eventId = _eventId;
+        purchases[_purchaseId].quantity = _quantity;
+        purchases[_purchaseId].externalId = keccak256(bytes(_externalId));
+        purchases[_purchaseId].timestamp = _timestamp;
+        purchases[_purchaseId].customer = msg.sender;
+        purchases[_purchaseId].customerId = keccak256(bytes(_customerId));
+        purchases[_purchaseId].total = SafeMath.mul(_quantity, events[_eventId].ticketPrice);
+        events[_eventId].ticketsSold = SafeMath.add(events[_eventId].ticketsSold, _quantity);
+        events[_eventId].ticketsLeft = SafeMath.sub(events[_eventId].ticketsLeft, _quantity);
         events[_eventId].eventBalance = SafeMath.add(events[_eventId].eventBalance, purchases[_purchaseId].total);
         emit PurchaseCompleted(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
     function cancelPurchase(
-        uint _eventId,
         uint _purchaseId,
-        string calldata _buyerId,
+        string calldata _customerId,
         string calldata _externalId
     )
         external
+        nonReentrant
         storeOpen
-        eventNotCancelled(_eventId)
         purchaseCompleted(_purchaseId)
     {
-        require(msg.sender == purchases[_purchaseId].buyer, "only buyer can cancel purchase");
-        require(keccak256(bytes(_buyerId)) == purchases[_purchaseId].buyerId, "invalid buyer ID");
-        require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId, "invalid purchase external ID");
+        uint _eventId = purchases[_purchaseId].eventId;
+        require(events[_eventId].status == EventStatus.SalesStarted ||
+            events[_eventId].status == EventStatus.SalesSuspended ||
+            events[_eventId].status == EventStatus.SalesFinished ||
+            events[_eventId].status == EventStatus.Cancelled,
+            "event status doesn't allow purchase cancellation");
+        require(msg.sender == purchases[_purchaseId].customer, "only customer can cancel purchase");
+        require(keccak256(bytes(_customerId)) == purchases[_purchaseId].customerId, "invalid customer ID");
+        require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId, "invalid external ID");
         purchases[_purchaseId].status = PurchaseStatus.Cancelled;
+        events[_eventId].ticketsCancelled = SafeMath.add(events[_eventId].ticketsCancelled, purchases[_purchaseId].quantity);
+        events[_eventId].ticketsLeft = SafeMath.add(events[_eventId].ticketsLeft, purchases[_purchaseId].quantity);
         events[_eventId].eventBalance = SafeMath.sub(events[_eventId].eventBalance, purchases[_purchaseId].total);
+        events[_eventId].refundableBalance = SafeMath.add(events[_eventId].refundableBalance, purchases[_purchaseId].total);
+        storeRefundableBalance = SafeMath.add(storeRefundableBalance, purchases[_purchaseId].total);
         emit PurchaseCancelled(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
-    function refundPurchase(
-        uint _eventId,
-        uint _purchaseId,
-        string calldata _buyerId,
-        string calldata _externalId
-    )
+    function refundPurchase(uint _eventId, uint _purchaseId)
         external
+        nonReentrant
         storeOpen
-        eventOrPurchaseCancelled(_eventId, _purchaseId)
+        onlyOrganizer(_eventId)
+        purchaseCancelled(_purchaseId)
     {
-        require(msg.sender == purchases[_purchaseId].buyer, "only buyer can request refund");
-        require(keccak256(bytes(_buyerId)) == purchases[_purchaseId].buyerId, "invalid buyer ID");
-        require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId, "invalid purchase external ID");
         purchases[_purchaseId].status = PurchaseStatus.Refunded;
+        events[_eventId].ticketsRefunded = SafeMath.add(events[_eventId].ticketsRefunded, purchases[_purchaseId].quantity);
+        events[_eventId].refundableBalance = SafeMath.sub(events[_eventId].refundableBalance, purchases[_purchaseId].total);
+        storeRefundableBalance = SafeMath.sub(storeRefundableBalance, purchases[_purchaseId].total);
+        // TO-DO: transfer purchase refund to customer account
         emit PurchaseRefunded(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
+    }
+
+    function checkIn(uint _purchaseId)
+        external
+        nonReentrant
+        storeOpen
+        purchaseCompleted(_purchaseId)
+    {
+        uint _eventId = purchases[_purchaseId].eventId;
+        require(events[_eventId].status == EventStatus.SalesStarted ||
+            events[_eventId].status == EventStatus.SalesSuspended ||
+            events[_eventId].status == EventStatus.SalesFinished,
+            "event status doesn't allow check-in");
+        require(msg.sender == purchases[_purchaseId].customer, "only customer can check-in");
+        purchases[_purchaseId].status = PurchaseStatus.CheckedIn;
+        emit CustomerCheckedIn(_eventId, _purchaseId, msg.sender);
     }
 }

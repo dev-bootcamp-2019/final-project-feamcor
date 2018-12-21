@@ -1,0 +1,78 @@
+@startuml Bileto State Diagram
+skinparam Monochrome true
+left header Consensys Academy Developer Bootcamp 2019 - Final Project\n
+right footer \n2018-12-21 by Fábio Corrêa <feamcor@gmail.com>
+
+title Bileto smart contract - State Diagram\n
+
+state Store {
+    [*] --> Store.Created: constructor()
+    Store.Created --> Store.Open: openStore()
+    Store.Open: By Store.Owner
+    Store.Created --> Store.Closed: closeStore()
+    Store.Closed: By Store.Owner
+    Store.Open --> Store.Suspended: suspendStore()
+    Store.Suspended: By Store.Owner
+    Store.Open --> Store.Closed: closeStore()
+    Store.Suspended --> Store.Open: openStore()
+    Store.Suspended --> Store.Closed: closeStore()
+    Store.Closed: Store.RefundableBalance is Zero
+    Store.Closed --> [*]
+}
+
+state Event {
+    [*] --> Event.Created: createEvent()
+    Event.Created: By Store.Owner
+    Event.Created: Store.Open
+    Event.Created --> Event.SalesStarted: startTicketSales()
+    Event.SalesStarted: By Event.Organizer
+    Event.SalesStarted: Store.Open
+    Event.Created --> Event.Cancelled: cancelEvent()
+    Event.Cancelled: By Event.Organizer
+    Event.Cancelled: Store.Open
+    Event.SalesStarted --> Event.SalesSuspended: suspendTicketSales()
+    Event.SalesSuspended: By Event.Organizer
+    Event.SalesSuspended: Store.Open
+    Event.SalesStarted --> Event.SalesFinished: endTicketSales()
+    Event.SalesFinished: By Event.Organizer
+    Event.SalesFinished: Store.Open
+    Event.SalesSuspended --> Event.SalesStarted: startTicketSales()
+    Event.SalesSuspended --> Event.SalesFinished: endTicketSales()
+    Event.SalesFinished --> Event.Completed: completeEvent()
+    Event.Completed: By Event.Organizer
+    Event.Completed: Store.Open
+    Event.SalesFinished --> Event.Cancelled: cancelEvent()
+    Event.Completed --> Event.Settled: settleEvent()
+    Event.Settled: By Store.Owner
+    Event.Settled: Store.Open
+    Event.Cancelled --> [*]
+    Event.Settled --> [*]
+}
+
+state Purchase {
+    [*] --> Purchase.Completed: purchaseTickets()
+    Purchase.Completed: By Customer
+    Purchase.Completed: Store.Open
+    Purchase.Completed: Event.SalesStarted
+    Purchase.Completed: Purchase.Quantity <= Event.TicketsLeft
+    Purchase.Completed --> Purchase.Cancelled: cancelPurchase()
+    Purchase.Cancelled: By Customer
+    Purchase.Cancelled: Store.Open
+    Purchase.Cancelled: Event.SalesStarted
+    Purchase.Cancelled: OR Event.SalesSuspended
+    Purchase.Cancelled: OR Event.SalesFinished
+    Purchase.Cancelled: OR Event.Cancelled
+    Purchase.Cancelled --> Purchase.Refunded: refundPurchase()
+    Purchase.Refunded: By Organizer
+    Purchase.Refunded: Store.Open
+    Purchase.Refunded --> [*]
+    Purchase.Completed --> Purchase.CheckedIn: checkIn()
+    Purchase.CheckedIn: By Customer
+    Purchase.CheckedIn: Store.Open
+    Purchase.CheckedIn: Event.SalesStarted
+    Purchase.CheckedIn: OR Event.SalesSuspended
+    Purchase.CheckedIn: OR Event.SalesFinished
+    Purchase.CheckedIn --> [*]
+}
+
+@enduml
