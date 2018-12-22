@@ -1,0 +1,18 @@
+{
+  "name": "bileto",
+  "version": "1.0.0",
+  "description": "Decentralized ticket store on Ethereum",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Fábio Corrêa <feamcor@gmail.com>",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "openzeppelin-solidity": "github:OpenZeppelin/openzeppelin-solidity#release-v2.1.0-solc-0.5"
+  }
+}

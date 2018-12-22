@@ -1,6 +1,6 @@
 # Bileto
 
-[Bileto](https://en.wiktionary.org/wiki/bileto) is a decentralized, blockchain-based, ticket store for Ethereum.
+[Bileto](https://en.wiktionary.org/wiki/bileto) is a decentralized ticket store on Ethereum.
 
 - [Bileto](#bileto)
   - [Introduction](#introduction)
