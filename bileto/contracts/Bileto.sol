@@ -37,7 +37,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     struct Event {
         EventStatus status;
         bytes32 externalId;
-        address organizer;
+        address payable organizer;
         string name;
         uint storeIncentive;
         uint ticketPrice;
@@ -55,7 +55,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         PurchaseStatus status;
         bytes32 externalId;
         uint timestamp;
-        address customer;
+        address payable customer;
         bytes32 customerId;
         uint quantity;
         uint total;
@@ -67,10 +67,10 @@ contract Bileto is Ownable, ReentrancyGuard {
     StoreStatus public storeStatus;
     uint public storeRefundableBalance;
 
-    Counter.Counter public eventsCounter;
+    Counter.Counter private eventsCounter;
     mapping(uint => Event) public events;
 
-    Counter.Counter public purchasesCounter;
+    Counter.Counter private purchasesCounter;
     mapping(uint => Purchase) public purchases;
 
     /// @notice Ticket store was created.
@@ -284,7 +284,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @dev emit `EventCreated` event
     function createEvent(
         string calldata _externalId,
-        address _organizer,
+        address payable _organizer,
         string calldata _name,
         uint _storeIncentive,
         uint _ticketPrice,
@@ -399,7 +399,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         uint _storeIncentive = events[_eventId].storeIncentive;
         uint _storeBalance = SafeMath.div(SafeMath.mul(_eventBalance, _storeIncentive), 10000);
         uint _settlement = SafeMath.sub(_eventBalance, _storeBalance);
-        // TO-DO: transfer settlement to organizer account
+        events[_eventId].organizer.transfer(_settlement);
         emit EventSettled(_eventId, events[_eventId].externalId, msg.sender, _settlement);
     }
 
@@ -508,7 +508,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         emit PurchaseCancelled(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
-    /// @notice Refund a cancelled purchase.
+    /// @notice Refund a cancelled purchase to customer.
     /// @param _eventId internal ID of the event associated to the purchase
     /// @param _purchaseId purchase's internal ID
     /// @dev emit `PurchaseRefunded` event
@@ -523,11 +523,11 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].ticketsRefunded = SafeMath.add(events[_eventId].ticketsRefunded, purchases[_purchaseId].quantity);
         events[_eventId].refundableBalance = SafeMath.sub(events[_eventId].refundableBalance, purchases[_purchaseId].total);
         storeRefundableBalance = SafeMath.sub(storeRefundableBalance, purchases[_purchaseId].total);
-        // TO-DO: transfer purchase refund to customer account
+        purchases[_purchaseId].customer.transfer(purchases[_purchaseId].total);
         emit PurchaseRefunded(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
-    /// @notice Check in to an event.
+    /// @notice Check into an event.
     /// @notice It means that customer and his/her companions (optional) attended to the event.
     /// @param _purchaseId purchase's internal ID
     /// @dev emit `CustomerCheckedIn` event
