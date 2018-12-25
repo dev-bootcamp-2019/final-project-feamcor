@@ -1,37 +1,37 @@
 pragma solidity 0.5.2;
 
-import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/drafts/Counter.sol";
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../node_modules/openzeppelin-solidity/contracts/utils/Address.sol";
-import "../node_modules/openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/drafts/Counter.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
+import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 
 /// @author Fábio Corrêa <feamcor@gmail.com>
 /// @title Bileto: a simple decentralized ticket store on Ethereum
 /// @notice Final project for ConsenSys Academy's Developer Bootcamp 2019.
 contract Bileto is Ownable, ReentrancyGuard {
     enum StoreStatus {
-        Created,
-        Open,
-        Suspended,
-        Closed
+        Created,   // 0
+        Open,      // 1
+        Suspended, // 2
+        Closed     // 3
     }
 
     enum EventStatus {
-        Created,
-        SalesStarted,
-        SalesSuspended,
-        SalesFinished,
-        Completed,
-        Settled,
-        Cancelled
+        Created,        // 0
+        SalesStarted,   // 1
+        SalesSuspended, // 2
+        SalesFinished,  // 3
+        Completed,      // 4
+        Settled,        // 5
+        Cancelled       // 6
     }
 
     enum PurchaseStatus {
-        Completed,
-        Cancelled,
-        Refunded,
-        CheckedIn
+        Completed, // 0
+        Cancelled, // 1
+        Refunded,  // 2
+        CheckedIn  // 3
     }
 
     struct Event {
@@ -67,16 +67,16 @@ contract Bileto is Ownable, ReentrancyGuard {
     StoreStatus public storeStatus;
     uint public storeRefundableBalance;
 
-    Counter.Counter private eventsCounter;
+    Counter.Counter public eventsCounter;
     mapping(uint => Event) public events;
 
-    Counter.Counter private purchasesCounter;
+    Counter.Counter public purchasesCounter;
     mapping(uint => Purchase) public purchases;
 
-    /// @notice Ticket store was created.
-    /// @param _by store's owner address (indexed)
-    /// @dev corresponds to `StoreStatus.Created`
-    event StoreCreated(address indexed _by);
+    // /// @notice Ticket store was created.
+    // /// @param _by store's owner address (indexed)
+    // /// @dev corresponds to `StoreStatus.Created`
+    // event StoreCreated(address indexed _by);
 
     /// @notice Ticket store was opened.
     /// @param _by store's owner address (indexed)
@@ -215,10 +215,10 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Initialize the ticket store and its respective owner.
     /// @dev store owner is set by the account who created the store
-    /// @dev emit `StoreCreated` event
+    // /// @dev emit `StoreCreated` event
     constructor() public {
         storeStatus = StoreStatus.Created;
-        emit StoreCreated(owner());
+        // emit StoreCreated(owner());
     }
 
     /// @notice Fallback function.
