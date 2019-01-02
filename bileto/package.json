@@ -13,6 +13,7 @@
   "author": "Fábio Corrêa <feamcor@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "openzeppelin-solidity": "github:OpenZeppelin/openzeppelin-solidity#release-v2.1.0-solc-0.5"
+    "openzeppelin-solidity": "^2.1.0-rc.2",
+    "truffle-analyze": "^5.0.0"
   }
 }
