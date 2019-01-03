@@ -200,7 +200,16 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(isOwner() ||
             (_eventId <= eventsCounter.current &&
             msg.sender == events[_eventId].organizer),
-            "must be triggered by store owner or event organizer in order to proceed");
+            "must be triggered by event organizer or store owner in order to proceed");
+        _;
+    }
+
+    /// @dev Verify that transaction on a purchase was triggered by the customer, event organizer or store owner.
+    modifier onlyOwnerOrganizerOrCustomer(uint _purchaseId) {
+        require(isOwner() ||
+            (_purchaseId <= purchasesCounter.current && msg.sender == purchases[_purchaseId].customer) ||
+            (msg.sender == events[purchases[_purchaseId].eventId].organizer),
+            "must be triggered by customer, event organizer or store owner in order to proceed");
         _;
     }
 
@@ -565,6 +574,16 @@ contract Bileto is Ownable, ReentrancyGuard {
         emit CustomerCheckedIn(_eventId, _purchaseId, msg.sender);
     }
 
+    /// @notice Fetch event basic information.
+    /// @notice Basic info are those static attributes set when event is created.
+    /// @param _eventId event's internal ID
+    /// @return event's status
+    /// @return event's external ID
+    /// @return event organizer's address
+    /// @return event's name
+    /// @return store incentive for the event
+    /// @return event's ticket price
+    /// @return quantity of tickets on sale for the event
     function fetchEventInfo(uint _eventId)
         external
         view
@@ -588,6 +607,17 @@ contract Bileto is Ownable, ReentrancyGuard {
         _ticketsOnSale = events[_eventId].ticketsOnSale;
     }
 
+    /// @notice Fetch event sales information.
+    /// @notice Sales info are those attributes which change upon each purchase/cancellation transaction.
+    /// @param _eventId event's internal ID
+    /// @return event's status
+    /// @return quantity of tickets sold for the event
+    /// @return quantity of tickets available for sale
+    /// @return quantity of tickets that were sold and then cancelled
+    /// @return quantity of cancelled tickets that were already refunded
+    /// @return quantity of tickets that already checked into the event
+    /// @return balance of the event resulting from sales of tickets
+    /// @return balance to be refunded due to cancellations
     function fetchEventSalesInfo(uint _eventId)
         external
         view
@@ -611,5 +641,40 @@ contract Bileto is Ownable, ReentrancyGuard {
         _ticketsCheckedIn = events[_eventId].ticketsCheckedIn;
         _eventBalance = events[_eventId].eventBalance;
         _refundableBalance = events[_eventId].refundableBalance;
+    }
+
+    /// @notice Fetch purchase information.
+    /// @param _purchaseId purchase's internal ID
+    /// @return purchase's status
+    /// @return hash of purchase's external ID
+    /// @return purchase's external timestamp
+    /// @return customer's address
+    /// @return hash of customer's external ID
+    /// @return quantity of tickets purchased
+    /// @return total of purchase (quantity * ticket price)
+    /// @return ID of the event related to the purchase
+    function fetchPurchaseInfo(uint _purchaseId)
+        external
+        view
+        onlyOwnerOrganizerOrCustomer(_purchaseId)
+        returns (
+            uint _purchaseStatus,
+            bytes32 _externalId,
+            uint _timestamp,
+            address _customer,
+            bytes32 _customerId,
+            uint _quantity,
+            uint _total,
+            uint _eventId
+        )
+    {
+        _purchaseStatus = uint(purchases[_purchaseId].status);
+        _externalId = purchases[_purchaseId].externalId;
+        _timestamp = purchases[_purchaseId].timestamp;
+        _customer = purchases[_purchaseId].customer;
+        _customerId = purchases[_purchaseId].customerId;
+        _quantity = purchases[_purchaseId].quantity;
+        _total = purchases[_purchaseId].total;
+        _eventId = purchases[_purchaseId].eventId;
     }
 }
