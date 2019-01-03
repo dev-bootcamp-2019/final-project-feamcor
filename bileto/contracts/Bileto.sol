@@ -73,11 +73,6 @@ contract Bileto is Ownable, ReentrancyGuard {
     Counter.Counter public purchasesCounter;
     mapping(uint => Purchase) public purchases;
 
-    // /// @notice Ticket store was created.
-    // /// @param _by store's owner address (indexed)
-    // /// @dev corresponds to `StoreStatus.Created`
-    // event StoreCreated(address indexed _by);
-
     /// @notice Ticket store was opened.
     /// @param _by store's owner address (indexed)
     /// @dev corresponds to `StoreStatus.Open`
@@ -409,6 +404,8 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Settle an event.
     /// @notice It means that (non-refundable) funds will be transferred to organizer.
+    /// @notice No transfer will be performed if settlement balance is zero,
+    /// @notice even though event will be considered settled.
     /// @param _eventId event's internal ID
     /// @dev emit `EventSettled` event
     function settleEvent(uint _eventId)
@@ -424,7 +421,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         uint _storeIncentive = events[_eventId].storeIncentive;
         uint _storeBalance = SafeMath.div(SafeMath.mul(_eventBalance, _storeIncentive), 10000);
         uint _settlement = SafeMath.sub(_eventBalance, _storeBalance);
-        events[_eventId].organizer.transfer(_settlement);
+        if (_settlement > 0) {
+            events[_eventId].organizer.transfer(_settlement);
+        }
         emit EventSettled(_eventId, events[_eventId].externalId, msg.sender, _settlement);
     }
 
