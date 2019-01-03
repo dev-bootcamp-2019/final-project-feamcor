@@ -13,7 +13,10 @@
   "author": "Fábio Corrêa <feamcor@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "openzeppelin-solidity": "^2.1.0-rc.2",
-    "truffle-analyze": "^5.0.0"
+    "openzeppelin-solidity": "^2.1.0-rc.2"
+  },
+  "devDependencies": {
+    "truffle-analyze": "^5.0.0",
+    "truffle-assertions": "^0.7.2"
   }
 }
