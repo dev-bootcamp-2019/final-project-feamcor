@@ -189,6 +189,15 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Verify that transaction on an event was triggered by its organizer or store owner.
+    modifier onlyOwnerOrOrganizer(uint _eventId) {
+        require(isOwner() ||
+            (_eventId <= eventsCounter.current &&
+            msg.sender == events[_eventId].organizer),
+            "must be triggered by store owner or event organizer in order to proceed");
+        _;
+    }
+
     /// @notice Verify that tickets of an event are on sale (have started), otherwise revert.
     modifier eventOnSale(uint _eventId) {
         require(_eventId <= eventsCounter.current &&
@@ -316,6 +325,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].ticketsOnSale = _ticketsOnSale;
         events[_eventId].ticketsLeft = _ticketsOnSale;
         emit EventCreated(_eventId, events[_eventId].externalId, msg.sender);
+        return (_eventId);
     }
 
     /// @notice Start sale of tickets for an event.
@@ -469,6 +479,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].ticketsLeft = SafeMath.sub(events[_eventId].ticketsLeft, _quantity);
         events[_eventId].eventBalance = SafeMath.add(events[_eventId].eventBalance, purchases[_purchaseId].total);
         emit PurchaseCompleted(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
+        return (_purchaseId);
     }
 
     /// @notice Cancel a purchase.
@@ -546,5 +557,55 @@ contract Bileto is Ownable, ReentrancyGuard {
             "check-in request must be initiated from customer's own account in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.CheckedIn;
         emit CustomerCheckedIn(_eventId, _purchaseId, msg.sender);
+    }
+
+    function fetchEventInfo(uint _eventId)
+        external
+        view
+        onlyOwnerOrOrganizer(_eventId)
+        returns (
+            uint _eventStatus,
+            bytes32 _externalId,
+            address _organizer,
+            string memory _name,
+            uint _storeIncentive,
+            uint _ticketPrice,
+            uint _ticketsOnSale
+        )
+    {
+        _eventStatus = uint(events[_eventId].status);
+        _externalId = events[_eventId].externalId;
+        _organizer = events[_eventId].organizer;
+        _name = events[_eventId].name;
+        _storeIncentive = events[_eventId].storeIncentive;
+        _ticketPrice = events[_eventId].ticketPrice;
+        _ticketsOnSale = events[_eventId].ticketsOnSale;
+        return (_eventStatus, _externalId, _organizer, _name, _storeIncentive, _ticketPrice, _ticketsOnSale );
+    }
+
+    function fetchEventSalesInfo(uint _eventId)
+        external
+        view
+        onlyOwnerOrOrganizer(_eventId)
+        returns (
+            uint _eventStatus,
+            uint _ticketsSold,
+            uint _ticketsLeft,
+            uint _ticketsCancelled,
+            uint _ticketsRefunded,
+            uint _ticketsCheckedIn,
+            uint _eventBalance,
+            uint _refundableBalance
+        )
+    {
+        _eventStatus = uint(events[_eventId].status);
+        _ticketsSold = events[_eventId].ticketsSold;
+        _ticketsLeft = events[_eventId].ticketsLeft;
+        _ticketsCancelled = events[_eventId].ticketsCancelled;
+        _ticketsRefunded = events[_eventId].ticketsRefunded;
+        _ticketsCheckedIn = events[_eventId].ticketsCheckedIn;
+        _eventBalance = events[_eventId].eventBalance;
+        _refundableBalance = events[_eventId].refundableBalance;
+        return (_eventStatus, _ticketsSold, _ticketsLeft, _ticketsCancelled, _ticketsRefunded, _ticketsCheckedIn, _eventBalance, _refundableBalance);
     }
 }
