@@ -9,13 +9,6 @@
   - [Enhancements](#enhancements)
   - [Project Specifications](#project-specifications)
   - [Project Requirements](#project-requirements)
-    - [User Interface](#user-interface)
-    - [Testing](#testing)
-    - [Design Patterns](#design-patterns)
-    - [Security Tools / Common Attacks](#security-tools--common-attacks)
-    - [Use a Library or Extend a Contract](#use-a-library-or-extend-a-contract)
-    - [Deployment](#deployment)
-    - [Stretch](#stretch)
 
 ## Introduction
 __Bileto__ is a standalone smart contract which implements the business of a simple online ticket store.
@@ -31,16 +24,14 @@ __Bileto__ was developed as [my](https://github.com/feamcor) final project for t
 ## High-level Solution
 The __Bileto__ contract manages a few entities:
 - __Store__ - one per deployed contract. A store has an owner which in essence is the [EOA](https://ethereum.stackexchange.com/questions/5828/what-is-an-eoa-account) who deployed the contract. Only the owner can withdraw store's funds. Only owner can open, suspend ([circuit breaker](https://github.com/ConsenSys/smart-contract-best-practices/blob/master/docs/software_engineering.md#circuit-breakers-pause-contract-functionality)) and close the store. Closing a store is a final status that cannot be reversed. A store cannot be closed while there are pending refundable balance (to be paid back to customers due to purchase or event cancellations); 
-<br/>
 - __Event__ - many events can be created per store. An event has an organizer which is an EOA set during event creation. Event organizer will receive (withdraw) event's funds when event is completed. Organizer can start, suspend (circuit breaker) or finish ticket sales for his/her event. Organizer can also cancel the event;
-<br/>
 - __Purchase__ - many purchases can be performed per event (limited to the quantity of tickets available for sale). A purchase is always related to one event. If a customer wants to buy tickets, for instance, of two distinct events, he/she has to perform, at least, two purchases, one for each event. Customer can purchase one or more tickets on a single purchase. A purchase can be cancelled by customer while event is not completed, or by organizer when an event is cancelled. These cancellations give the right to the customer to be refunded (has to be requested by customer only).
 
 A __check-in__ status is set when customer actually attends to the event, making use of the tickets that he/she purchased previously. 
 
 The diagram below depicts the state transition and main pre-conditions handled by the contract for its entities.
 
-<br/>![Bileto State Diagram](bileto_state_diagram.svg)<br/>
+![Bileto State Diagram](bileto_state_diagram.svg)
 
 ## Set-up
 The source code of Bileto can be found at [GitHub](https://github.com/dev-bootcamp-2019/final-project-feamcor).
@@ -66,7 +57,6 @@ A list of possible enhancements for this contract are:
   - [x] What does it do?
   - [ ] How to set it up.
     - [ ] How to run a local development server.
-<br/>
 - [x] It should be a [Truffle project](https://truffleframework.com/docs/truffle/getting-started/creating-a-project).
   - [x] All contracts should be in a `contracts` directory.
     - [x] `truffle compile` should successfully compile contracts.
@@ -74,22 +64,15 @@ A list of possible enhancements for this contract are:
     - [x] `truffle migrate` should successfully migrate contracts to a locally running `ganache-cli` test blockchain on port `8454`.
   - [x] All tests should be in a `tests` directory.
     - [x] `truffle test` should migrate contracts and run the tests.
-<br/>
 - [x] Smart contract code should be commented according to the [specs in the documentation](https://solidity.readthedocs.io/en/v0.5.2/layout-of-source-files.html#comments).
-<br/>
 - [x] Create at least 5 tests for each smart contract.
   - [ ] Write a sentence or two explaining what the tests are covering, and explain why those tests were written.
-<br/>
 - [ ] A development server to serve the front-end interface of the application.
   - [ ] It can be something as simple as the [lite-server](https://www.npmjs.com/package/lite-server) used in the [Truffle Pet Shop tutorial](https://truffleframework.com/tutorials/pet-shop).
-<br/>
 - [ ] A document [design_pattern_decisions.md](design_pattern_decisions.md) that explains the design patterns chosen.
-<br/>
 - [ ] A document [avoiding_common_attacks.md](avoiding_common_attacks.md) that explains what measures were taken to ensure that the contracts are not susceptible to common attacks.
-<br/>
 - [x] Implement/use a library or an EthPM package.
   - [ ] If the project does not require a library or an EthPM package, demonstrate how it would do that in a contract called `LibraryDemo.sol`.
-<br/>
 - [ ] Develop your application and run the other projects during evaluation in a VirtualBox VM running Ubuntu 16.04 to reduce the chances of runtime environment variables.
 
 ## Project Requirements
