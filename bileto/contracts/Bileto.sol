@@ -174,14 +174,20 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @dev corresponds to `PurchaseStatus.CheckedIn`
     event CustomerCheckedIn(uint indexed _eventId, uint indexed _purchaseId, address indexed _by);
 
-    /// @notice Verify that ticket store is open, otherwise revert.
+    /// @dev Verify that ticket store is open, otherwise revert.
     modifier storeOpen() {
         require(storeStatus == StoreStatus.Open,
             "ticket store must be open in order to proceed");
         _;
     }
 
-    /// @notice Verify that transaction on an event was triggered by its organizer, otherwise revert.
+    /// @dev Verify that transaction/call was triggered by store owner, otherwise revert.
+    modifier onlyOwner() {
+        require(isOwner(), "must be triggered by owner in order to proceed");
+        _;
+    }
+
+    /// @dev Verify that transaction on an event was triggered by its organizer, otherwise revert.
     modifier onlyOrganizer(uint _eventId) {
         require(_eventId <= eventsCounter.current &&
             msg.sender == events[_eventId].organizer,
@@ -189,7 +195,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
-    /// @notice Verify that transaction on an event was triggered by its organizer or store owner.
+    /// @dev Verify that transaction on an event was triggered by its organizer or store owner.
     modifier onlyOwnerOrOrganizer(uint _eventId) {
         require(isOwner() ||
             (_eventId <= eventsCounter.current &&
@@ -198,7 +204,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
-    /// @notice Verify that tickets of an event are on sale (have started), otherwise revert.
+    /// @dev Verify that tickets of an event are on sale (have started), otherwise revert.
     modifier eventOnSale(uint _eventId) {
         require(_eventId <= eventsCounter.current &&
             events[_eventId].status == EventStatus.SalesStarted,
@@ -206,7 +212,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
-    /// @notice Verify that a purchase was completed, otherwise revert.
+    /// @dev Verify that a purchase was completed, otherwise revert.
     modifier purchaseCompleted(uint _purchaseId) {
         require(_purchaseId <= purchasesCounter.current &&
             purchases[_purchaseId].status == PurchaseStatus.Completed,
@@ -214,7 +220,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
-    /// @notice Verify that a purchase was cancelled, otherwise revert.
+    /// @dev Verify that a purchase was cancelled, otherwise revert.
     modifier purchaseCancelled(uint _purchaseId) {
         require(_purchaseId <= purchasesCounter.current &&
             purchases[_purchaseId].status == PurchaseStatus.Cancelled,
@@ -580,7 +586,6 @@ contract Bileto is Ownable, ReentrancyGuard {
         _storeIncentive = events[_eventId].storeIncentive;
         _ticketPrice = events[_eventId].ticketPrice;
         _ticketsOnSale = events[_eventId].ticketsOnSale;
-        return (_eventStatus, _externalId, _organizer, _name, _storeIncentive, _ticketPrice, _ticketsOnSale );
     }
 
     function fetchEventSalesInfo(uint _eventId)
@@ -606,6 +611,5 @@ contract Bileto is Ownable, ReentrancyGuard {
         _ticketsCheckedIn = events[_eventId].ticketsCheckedIn;
         _eventBalance = events[_eventId].eventBalance;
         _refundableBalance = events[_eventId].refundableBalance;
-        return (_eventStatus, _ticketsSold, _ticketsLeft, _ticketsCancelled, _ticketsRefunded, _ticketsCheckedIn, _eventBalance, _refundableBalance);
     }
 }
