@@ -1,60 +1,152 @@
 const Bileto = artifacts.require('Bileto')
 
 contract('Bileto', async (accounts) => {
-  let _contract;
-  let _address;
-  let _owner;
-  let _balance;
-  let _status;
-  let _refundable;
-  let _lastEvent;
-  let _lastPurchase;
+  let __contract;
+  let __address;
+  let __owner;
+  let __balance;
+  let __status;
+  let __refundable;
+  let __lastEvent;
+  let __lastPurchase;
 
   before(async () => {
-    _contract = await Bileto.deployed();
-    _address = _contract.address;
-    _owner = await _contract.owner();
-    console.log("store address:" + _address);
-    console.log("store owner: " + _owner);
+    __contract = await Bileto.deployed();
+    __address = __contract.address;
+    __owner = await __contract.owner();
+    let _counter = 0;
+    for (let _account of accounts) {
+      const _balance = await web3.eth.getBalance(_account);
+      console.log("account[" + _counter + "]:\t" + _account + " = " + web3.utils.fromWei(_balance, 'ether'));
+      _counter += 1;
+      if (_counter == 5) break;
+    } 
+    console.log("store address:\t" + __address);
+    console.log("store owner:\t" + __owner);
   });
 
   beforeEach(async () => {
-    _status = await _contract.storeStatus();
-    _balance = await web3.eth.getBalance(_address);
-    _refundable = await _contract.storeRefundableBalance();
-    _lastEvent = await _contract.eventsCounter();
-    _lastPurchase = await _contract.purchasesCounter();
-    console.log("store status: " + _status);
-    console.log("store balance: " + _balance);
-    console.log("store refundable: " + _refundable);
-    console.log("last event: " + _lastEvent);
-    console.log("last purchase: " + _lastPurchase);
+    __status = await __contract.storeStatus();
+    __balance = await web3.eth.getBalance(__address);
+    __refundable = await __contract.storeRefundableBalance();
+    __lastEvent = await __contract.eventsCounter();
+    __lastPurchase = await __contract.purchasesCounter();
+    console.log("store status:\t" + __status);
+    console.log("store balance:\t" + __balance);
+    console.log("store refund:\t" + __refundable);
+    console.log("last event:\t" + __lastEvent);
+    console.log("last purchase:\t" + __lastPurchase);
   });
 
   it("should create store", async () => {
-    assert.strictEqual(_status.toNumber(), 0, "store status is not StoreStatus.Created (0)");
-    assert.strictEqual(_balance, '0', "store balance is not zero");
-    assert.strictEqual(_refundable.toNumber(), 0, "store refundable balance is not zero");
+    assert.strictEqual(__status.toNumber(), 0, "store status is not StoreStatus.Created (0)");
+    assert.strictEqual(__balance, '0', "store balance is not zero");
+    assert.strictEqual(__refundable.toNumber(), 0, "store refundable balance is not zero");
   });
 
   it("should open store", async () => {
-    let _result = await _contract.openStore();
-    _status = await _contract.storeStatus();
-    console.log("emitted event: " + _result.logs[0].event);
-    assert.strictEqual(_status.toNumber(), 1, "store status is not StoreStatus.Open (1)");
+    const _result = await __contract.openStore();
+    __status = await __contract.storeStatus();
+    console.log("emitted event:\t" + _result.logs[0].event);
+    assert.strictEqual(__status.toNumber(), 1, "store status is not StoreStatus.Open (1)");
   });
 
   it("should suspend store", async () => {
-    let _result = await _contract.suspendStore();
-    _status = await _contract.storeStatus();
-    console.log("emitted event: " + _result.logs[0].event);
-    assert.strictEqual(_status.toNumber(), 2, "store status is not StoreStatus.Open (2)");
+    const _result = await __contract.suspendStore();
+    __status = await __contract.storeStatus();
+    console.log("emitted event:\t" + _result.logs[0].event);
+    assert.strictEqual(__status.toNumber(), 2, "store status is not StoreStatus.Open (2)");
+  });
+
+  it("should re-open store", async () => {
+    const _result = await __contract.openStore();
+    __status = await __contract.storeStatus();
+    console.log("emitted event:\t" + _result.logs[0].event);
+    assert.strictEqual(__status.toNumber(), 1, "store status is not StoreStatus.Open (1)");
+  });
+
+  it("should create an event", async () => {
+    const _result = await __contract.createEvent(
+      "BILETO-EVENT-1", 
+      accounts[1], 
+      "BILETO EVENT 1", 
+      1000, 
+      web3.utils.toWei("0.1", "ether"), 
+      10);
+    const _info = await __contract.fetchEventInfo(__lastEvent);
+    console.log("emitted event:\t" + _result.logs[0].event);
+    assert.strictEqual(_info._eventStatus.toNumber(), 0, "event status is not EventStatus.Created (0)");
+  });
+
+  it("should store event basic info accordingly", async () => {
+    const _info = await __contract.fetchEventInfo(__lastEvent);
+    const _hash = web3.utils.keccak256("BILETO-EVENT-1");
+    assert.strictEqual(_info._eventStatus.toNumber(), 0, "event status is not EventStatus.Created (0)");
+    assert.strictEqual(_info._externalId, _hash, "event external ID hash is incorrect");
+    assert.strictEqual(_info._organizer, accounts[1], "event organizer address is incorrect");
+    assert.strictEqual(_info._name, "BILETO EVENT 1", "event name is incorrect");
+    assert.strictEqual(_info._storeIncentive.toNumber(), 1000, "event store incentive is incorrect");
+    assert.strictEqual(_info._ticketPrice.toString(), web3.utils.toWei("0.1", "ether"), "event ticket price is incorrect");
+    assert.strictEqual(_info._ticketsOnSale.toNumber(), 10, "event tickets on sale is incorrect");
+  });
+
+  it("should init event sales info accordingly", async () => {
+    const _basic = await __contract.fetchEventInfo(__lastEvent);
+    const _info = await __contract.fetchEventSalesInfo(__lastEvent);
+    assert.strictEqual(_info._ticketsSold.toNumber(), 0, "event tickets sold should be zero");
+    assert.strictEqual(_info._ticketsLeft.toNumber(), _basic._ticketsOnSale.toNumber(), "event tickets left should be equal to tickets on sale");
+    assert.strictEqual(_info._ticketsCancelled.toNumber(), 0, "event tickets cancelled should be zero");
+    assert.strictEqual(_info._ticketsRefunded.toNumber(), 0, "event tickets refunded should be zero");
+    assert.strictEqual(_info._ticketsCheckedIn.toNumber(), 0, "event tickets checked-in should be zero");
+    assert.strictEqual(_info._eventBalance.toNumber(), 0, "event balance should be zero");
+    assert.strictEqual(_info._refundableBalance.toNumber(), 0, "event refundable balance should be zero");
+  });
+
+  it("should start ticket sales of an event", async () => {
+
+  });
+
+  it("should suspend ticket sales of an event", async () => {
+
+  });
+
+  it("should end ticket sales of an event", async () => {
+
+  });
+
+  it("should complete an event", async () => {
+
+  });
+
+  it("should cancel an event", async () => {
+
+  });
+
+  it("should settle an event", async () => {
+
+  });
+
+  it("should complete a purchase", async () => {
+
+  });
+
+  it("should cancel a purchase", async () => {
+
+  });
+
+  it("should refund a purchase", async () => {
+
+  });
+
+  it("should check-in customer", async () => {
+
   });
 
   it("should close store", async () => {
-    let _result = await _contract.closeStore();
-    _status = await _contract.storeStatus();
-    console.log("emitted event: " + _result.logs[0].event);
-    assert.strictEqual(_status.toNumber(), 3, "store status is not StoreStatus.Open (2)");
+    const _result = await __contract.closeStore();
+    __status = await __contract.storeStatus();
+    console.log("emitted event:\t" + _result.logs[0].event);
+    assert.strictEqual(__status.toNumber(), 3, "store status is not StoreStatus.Open (2)");
   });
+
 });
