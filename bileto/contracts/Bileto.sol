@@ -1,10 +1,10 @@
 pragma solidity 0.5.2;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/drafts/Counter.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "./Ownable.sol";
+import "./Counter.sol";
+import "./SafeMath.sol";
+import "./Address.sol";
+import "./ReentrancyGuard.sol";
 
 /// @author Fábio Corrêa <feamcor@gmail.com>
 /// @title Bileto: a simple decentralized ticket store on Ethereum
@@ -67,10 +67,10 @@ contract Bileto is Ownable, ReentrancyGuard {
     StoreStatus public storeStatus;
     uint public storeRefundableBalance;
 
-    Counter.Counter public eventsCounter;
+    Counter.Counter_ public eventsCounter;
     mapping(uint => Event) public events;
 
-    Counter.Counter public purchasesCounter;
+    Counter.Counter_ public purchasesCounter;
     mapping(uint => Purchase) public purchases;
 
     /// @notice Ticket store was opened.
@@ -176,12 +176,6 @@ contract Bileto is Ownable, ReentrancyGuard {
         _;
     }
 
-    /// @dev Verify that transaction/call was triggered by store owner, otherwise revert.
-    modifier onlyOwner() {
-        require(isOwner(), "must be triggered by owner in order to proceed");
-        _;
-    }
-
     /// @dev Verify that transaction on an event was triggered by its organizer, otherwise revert.
     modifier onlyOrganizer(uint _eventId) {
         require(_eventId <= eventsCounter.current &&
@@ -234,10 +228,8 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Initialize the ticket store and its respective owner.
     /// @dev store owner is set by the account who created the store
-    // /// @dev emit `StoreCreated` event
     constructor() public {
         storeStatus = StoreStatus.Created;
-        // emit StoreCreated(owner());
     }
 
     /// @notice Fallback function.
