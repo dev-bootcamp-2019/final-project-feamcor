@@ -62,8 +62,6 @@ contract Bileto is Ownable, ReentrancyGuard {
         uint eventId;
     }
 
-    uint constant private TIME_WINDOW = 15 * 60; // 15 minutes before and after now
-
     StoreStatus public storeStatus;
     uint public storeRefundableBalance;
 
@@ -74,98 +72,98 @@ contract Bileto is Ownable, ReentrancyGuard {
     mapping(uint => Purchase) public purchases;
 
     /// @notice Ticket store was opened.
-    /// @param _by store's owner address (indexed)
+    /// @param _by store owner address (indexed)
     /// @dev corresponds to `StoreStatus.Open`
     event StoreOpen(address indexed _by);
 
     /// @notice Ticket store was suspended.
-    /// @param _by store's owner address (indexed)
+    /// @param _by store owner address (indexed)
     /// @dev corresponds to `StoreStatus.Suspended`
     event StoreSuspended(address indexed _by);
 
     /// @notice Ticket store was closed.
-    /// @param _by store's owner address (indexed)
+    /// @param _by store owner address (indexed)
     /// @dev corresponds to `StoreStatus.Closed`
     event StoreClosed(address indexed _by);
 
     /// @notice Ticket event was created.
-    /// @param _id event's new internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by store's owner address (indexed)
+    /// @param _id event new internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by store owner address (indexed)
     /// @dev corresponds to `EventStatus.Created`
     event EventCreated(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
-    /// @notice Event's ticket sales was started.
-    /// @param _id event's internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by events's organizer address (indexed)
+    /// @notice Event ticket sales was started.
+    /// @param _id event internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by events organizer address (indexed)
     /// @dev corresponds to `EventStatus.SalesStarted`
     event EventSalesStarted(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
-    /// @notice Event's ticket sales was suspended.
-    /// @param _id event's internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by events's organizer address (indexed)
+    /// @notice Event ticket sales was suspended.
+    /// @param _id event internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by events organizer address (indexed)
     /// @dev corresponds to `EventStatus.SalesSuspended`
     event EventSalesSuspended(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
-    /// @notice Event's ticket sales was finished.
-    /// @param _id event's internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by events's organizer address (indexed)
+    /// @notice Event ticket sales was finished.
+    /// @param _id event internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by events organizer address (indexed)
     /// @dev corresponds to `EventStatus.SalesFinished`
     event EventSalesFinished(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
     /// @notice Ticket event was completed.
-    /// @param _id event's new internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by events's organizer address (indexed)
+    /// @param _id event new internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by events organizer address (indexed)
     /// @dev corresponds to `EventStatus.Completed`
     event EventCompleted(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
     /// @notice Ticket event was settled.
-    /// @param _id event's internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by store's owner address (indexed)
-    /// @param _settlement amount settled (transferred) to event's organizer
+    /// @param _id event internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by store owner address (indexed)
+    /// @param _settlement amount settled (transferred) to event organizer
     /// @dev corresponds to `EventStatus.Settled`
     event EventSettled(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _settlement);
 
     /// @notice Ticket event was cancelled.
-    /// @param _id event's internal ID (indexed) 
-    /// @param _extId hash of the event's external ID (indexed)
-    /// @param _by event's organizer address (indexed)
+    /// @param _id event internal ID (indexed) 
+    /// @param _extId hash of the event external ID (indexed)
+    /// @param _by event organizer address (indexed)
     /// @dev corresponds to `EventStatus.Cancelled`
     event EventCancelled(uint indexed _id, bytes32 indexed _extId, address indexed _by);
 
     /// @notice Ticket purchase was completed.
-    /// @param _id purchase's new internal ID (indexed) 
-    /// @param _extId hash of the purchase's external ID (indexed)
-    /// @param _by customer's address (indexed)
-    /// @param _id event's internal ID 
+    /// @param _id purchase new internal ID (indexed) 
+    /// @param _extId hash of the purchase external ID (indexed)
+    /// @param _by customer address (indexed)
+    /// @param _id event internal ID 
     /// @dev corresponds to `PurchaseStatus.Completed`
     event PurchaseCompleted(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
 
     /// @notice Ticket purchase was cancelled.
-    /// @param _id purchase's internal ID (indexed) 
-    /// @param _extId hash of the purchase's external ID (indexed)
-    /// @param _by customer's address (indexed)
-    /// @param _id event's internal ID 
+    /// @param _id purchase internal ID (indexed) 
+    /// @param _extId hash of the purchase external ID (indexed)
+    /// @param _by customer address (indexed)
+    /// @param _id event internal ID 
     /// @dev corresponds to `PurchaseStatus.Cancelled`
     event PurchaseCancelled(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
 
     /// @notice Ticket purchase was refunded.
-    /// @param _id purchase's internal ID (indexed) 
-    /// @param _extId hash of the purchase's external ID (indexed)
-    /// @param _by customer's address (indexed)
-    /// @param _id event's internal ID 
+    /// @param _id purchase internal ID (indexed) 
+    /// @param _extId hash of the purchase external ID (indexed)
+    /// @param _by customer address (indexed)
+    /// @param _id event internal ID 
     /// @dev corresponds to `PurchaseStatus.Refunded`
     event PurchaseRefunded(uint indexed _id, bytes32 indexed _extId, address indexed _by, uint _eventId);
 
     /// @notice Customer checked in the event.
-    /// @param _eventId event's internal ID (indexed)
-    /// @param _purchaseId purchase's internal ID (indexed) 
-    /// @param _by customer's address (indexed)
+    /// @param _eventId event internal ID (indexed)
+    /// @param _purchaseId purchase internal ID (indexed) 
+    /// @param _by customer address (indexed)
     /// @dev corresponds to `PurchaseStatus.CheckedIn`
     event CustomerCheckedIn(uint indexed _eventId, uint indexed _purchaseId, address indexed _by);
 
@@ -237,7 +235,8 @@ contract Bileto is Ownable, ReentrancyGuard {
         external
         payable
     {
-        require(msg.data.length == 0, "only funds transfer (i.e. no data) accepted on fallback");
+        require(msg.data.length == 0,
+            "only funds transfer (i.e. no data) accepted on fallback");
     }
 
     /// @notice Open ticket store.
@@ -268,7 +267,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Close ticket store.
-    /// @notice This is ticket store's final state and become inoperable after.
+    /// @notice This is ticket store final state and become inoperable after.
     /// @notice Ticket store won't close while there are refundable balance left.
     /// @dev emit `StoreClosed` event
     function closeStore()
@@ -279,19 +278,19 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(storeStatus != StoreStatus.Closed,
             "ticket store cannot be closed in order to proceed");
         require(storeRefundableBalance == 0,
-            "ticket store's refundable balance must be zero in order to proceed");
+            "ticket store refundable balance must be zero in order to proceed");
         storeStatus = StoreStatus.Closed;
         emit StoreClosed(owner());
     }
 
     /// @notice Create a ticket event.
-    /// @param _externalId event's external ID provided by organizer. Will be stored hashed
-    /// @param _organizer event's organizer address. Will be able to manage the event thereafter
-    /// @param _name event's name
+    /// @param _externalId event external ID provided by organizer. Will be stored hashed
+    /// @param _organizer event organizer address. Will be able to manage the event thereafter
+    /// @param _name event name
     /// @param _storeIncentive commission granted to store upon sale of tickets. From 0.00% (000) to 100.00% (10000)
     /// @param _ticketPrice ticket price (in wei)
     /// @param _ticketsOnSale number of tickets available for sale
-    /// @return event's internal ID
+    /// @return event internal ID
     /// @dev emit `EventCreated` event
     function createEvent(
         string calldata _externalId,
@@ -308,11 +307,11 @@ contract Bileto is Ownable, ReentrancyGuard {
         returns (uint _eventId)
     {
         require(!Address.isContract(_organizer),
-            "organizer's address must refer to an account (i.e. not a contract) in order to proceed");
+            "organizer address must refer to an account (i.e. not a contract) in order to proceed");
         require(bytes(_externalId).length != 0,
-            "ticket event's external ID must not be empty in order to proceed");
+            "ticket event external ID must not be empty in order to proceed");
         require(bytes(_name).length != 0,
-            "ticket event's name must not be empty in order to proceed");
+            "ticket event name must not be empty in order to proceed");
         require(_storeIncentive >= 0 && _storeIncentive <= 10000,
             "store incentive must be between 0.00% (000) to 100.00% (10000) in order to proceed");
         require(_ticketsOnSale > 0,
@@ -331,7 +330,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Start sale of tickets for an event.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventSalesStarted` event
     function startTicketSales(uint _eventId)
         external
@@ -347,7 +346,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Suspend sale of tickets for an event.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventSalesSuspended` event
     function suspendTicketSales(uint _eventId)
         external
@@ -363,7 +362,7 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice End sale of tickets for an event.
     /// @notice It means that no tickets for the event can be sold thereafter.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventSalesFinished` event
     function endTicketSales(uint _eventId)
         external
@@ -380,7 +379,7 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Complete an event.
     /// @notice It means that the event is past and can be settled (paid out to organizer).
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventCompleted` event
     function completeEvent(uint _eventId)
         external
@@ -398,7 +397,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @notice It means that (non-refundable) funds will be transferred to organizer.
     /// @notice No transfer will be performed if settlement balance is zero,
     /// @notice even though event will be considered settled.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventSettled` event
     function settleEvent(uint _eventId)
         external
@@ -421,7 +420,7 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Cancel an event.
     /// @notice It means that ticket sales will stop and sold tickets (purchases) are refundable.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @dev emit `EventCancelled` event
     function cancelEvent(uint _eventId)
         external
@@ -437,12 +436,12 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Purchase one or more tickets.
-    /// @param _eventId event's internal ID
+    /// @param _eventId event internal ID
     /// @param _quantity number of tickets being purchase at once. It has to be greater than zero and available
-    /// @param _externalId purchase's external ID (usually for correlation). Cannot be empty. Will be stored hashed
-    /// @param _timestamp purchase's date provided by organizer (UNIX epoch)
+    /// @param _externalId purchase external ID (usually for correlation). Cannot be empty. Will be stored hashed
+    /// @param _timestamp purchase date provided by organizer (UNIX epoch)
     /// @param _customerId ID of the customer provided during purchase. Cannot be empty. Will be store hashed
-    /// @return purchase's internal ID
+    /// @return purchase internal ID
     /// @dev emit `PurchaseCompleted` event
     function purchaseTickets(
         uint _eventId,
@@ -459,19 +458,19 @@ contract Bileto is Ownable, ReentrancyGuard {
         returns (uint _purchaseId)
     {
         require(!Address.isContract(msg.sender),
-            "customer's address must refer to an account (i.e. not a contract) in order to proceed");
+            "customer address must refer to an account (i.e. not a contract) in order to proceed");
         require(_quantity > 0,
             "quantity of tickets must be greater than zero in order to proceed");
         require(_quantity <= events[_eventId].ticketsLeft,
             "not enough tickets left for the quantity requested. please change quantity in order to proceed");
         require(bytes(_externalId).length != 0,
-            "purchase's external ID must not be empty in order to proceed");
-        require(_timestamp >= now - TIME_WINDOW && _timestamp <= now + TIME_WINDOW,
-            "purchase's date must be within valid time window in order to proceed");
+            "purchase external ID must not be empty in order to proceed");
+        require(_timestamp > 0,
+            "purchase date must be provided (not zero)");
         require(bytes(_customerId).length != 0,
             "customer ID cannot be empty in order to proceed");
         require(msg.value == SafeMath.mul(_quantity, events[_eventId].ticketPrice),
-            "customer's funds sent on transaction must be equal to purchase's total in order to proceed");
+            "customer funds sent on transaction must be equal to purchase total in order to proceed");
         _purchaseId = Counter.next(purchasesCounter);
         purchases[_purchaseId].status = PurchaseStatus.Completed;
         purchases[_purchaseId].eventId = _eventId;
@@ -490,9 +489,9 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Cancel a purchase.
     /// @notice Other IDs are required in order to avoid fraudulent cancellations.
-    /// @param _purchaseId purchase's internal ID
-    /// @param _externalId purchase's external ID which will be hashed and then compared to store one
-    /// @param _customerId purchase's customer ID which will be hashed and then compared to store one
+    /// @param _purchaseId purchase internal ID
+    /// @param _externalId purchase external ID which will be hashed and then compared to store one
+    /// @param _customerId purchase customer ID which will be hashed and then compared to store one
     /// @dev emit `PurchaseCancelled` event
     function cancelPurchase(
         uint _purchaseId,
@@ -511,11 +510,11 @@ contract Bileto is Ownable, ReentrancyGuard {
             events[_eventId].status == EventStatus.Cancelled,
             "event status must allow cancellation in order to proceed");
         require(msg.sender == purchases[_purchaseId].customer,
-            "purchase cancellation must be initiated by purchase's customer in order to proceed");
+            "purchase cancellation must be initiated by purchase customer in order to proceed");
         require(keccak256(bytes(_customerId)) == purchases[_purchaseId].customerId,
             "hashed customer ID must match with stored one in order to proceed");
         require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId,
-            "hashed purchase's external ID must match with stored one in order to proceed");
+            "hashed purchase external ID must match with stored one in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Cancelled;
         events[_eventId].ticketsCancelled = SafeMath.add(events[_eventId].ticketsCancelled, purchases[_purchaseId].quantity);
         events[_eventId].ticketsLeft = SafeMath.add(events[_eventId].ticketsLeft, purchases[_purchaseId].quantity);
@@ -527,7 +526,7 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Refund a cancelled purchase to customer.
     /// @param _eventId internal ID of the event associated to the purchase
-    /// @param _purchaseId purchase's internal ID
+    /// @param _purchaseId purchase internal ID
     /// @dev emit `PurchaseRefunded` event
     function refundPurchase(uint _eventId, uint _purchaseId)
         external
@@ -546,7 +545,7 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Check into an event.
     /// @notice It means that customer and his/her companions (optional) attended to the event.
-    /// @param _purchaseId purchase's internal ID
+    /// @param _purchaseId purchase internal ID
     /// @dev emit `CustomerCheckedIn` event
     function checkIn(uint _purchaseId)
         external
@@ -558,22 +557,22 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(events[_eventId].status == EventStatus.SalesStarted ||
             events[_eventId].status == EventStatus.SalesSuspended ||
             events[_eventId].status == EventStatus.SalesFinished,
-            "event ticket's sales should have been started/suspended/finished in order to proceed");
+            "event ticket sales should have been started/suspended/finished in order to proceed");
         require(msg.sender == purchases[_purchaseId].customer,
-            "check-in request must be initiated from customer's own account in order to proceed");
+            "check-in request must be initiated from customer own account in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.CheckedIn;
         emit CustomerCheckedIn(_eventId, _purchaseId, msg.sender);
     }
 
     /// @notice Fetch event basic information.
     /// @notice Basic info are those static attributes set when event is created.
-    /// @param _eventId event's internal ID
-    /// @return event's status
-    /// @return event's external ID
-    /// @return event organizer's address
-    /// @return event's name
+    /// @param _eventId event internal ID
+    /// @return event status
+    /// @return event external ID
+    /// @return event organizer address
+    /// @return event name
     /// @return store incentive for the event
-    /// @return event's ticket price
+    /// @return event ticket price
     /// @return quantity of tickets on sale for the event
     function fetchEventInfo(uint _eventId)
         external
@@ -600,8 +599,8 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Fetch event sales information.
     /// @notice Sales info are those attributes which change upon each purchase/cancellation transaction.
-    /// @param _eventId event's internal ID
-    /// @return event's status
+    /// @param _eventId event internal ID
+    /// @return event status
     /// @return quantity of tickets sold for the event
     /// @return quantity of tickets available for sale
     /// @return quantity of tickets that were sold and then cancelled
@@ -635,12 +634,12 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Fetch purchase information.
-    /// @param _purchaseId purchase's internal ID
-    /// @return purchase's status
-    /// @return hash of purchase's external ID
-    /// @return purchase's external timestamp
-    /// @return customer's address
-    /// @return hash of customer's external ID
+    /// @param _purchaseId purchase internal ID
+    /// @return purchase status
+    /// @return hash of purchase external ID
+    /// @return purchase external timestamp
+    /// @return customer address
+    /// @return hash of customer external ID
     /// @return quantity of tickets purchased
     /// @return total of purchase (quantity * ticket price)
     /// @return ID of the event related to the purchase
