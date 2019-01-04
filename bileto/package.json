@@ -16,7 +16,6 @@
     "openzeppelin-solidity": "^2.1.0-rc.2"
   },
   "devDependencies": {
-    "truffle-analyze": "^5.0.0",
     "truffle-assertions": "^0.7.2"
   }
 }
