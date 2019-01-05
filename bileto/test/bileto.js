@@ -4,27 +4,28 @@ const Bileto = artifacts.require('Bileto')
 contract('Bileto', async (accounts) => {
   let __contract;
   let __address;
-  let __owner;
   let __balance;
   let __status;
   let __refundable;
   let __lastEvent;
   let __lastPurchase;
   let __timestamp = (new Date).getTime();
+  const __owner = accounts[0];
+  const __organizer1 = accounts[1];
+  const __customer1 = accounts[2];
   
   before(async () => {
     __contract = await Bileto.deployed();
     __address = __contract.address;
-    __owner = await __contract.owner();
-    // let _counter = 0;
-    // for (let _account of accounts) {
-      // const _balance = await web3.eth.getBalance(_account);
-      // console.log("account[" + _counter + "]:\t" + _account + " = " + web3.utils.fromWei(_balance, 'ether'));
-      // _counter += 1;
-      // if (_counter == 5) break;
-    // }
-    // console.log("store address:\t" + __address);
-    // console.log("store owner:\t" + __owner);
+    let _counter = 0;
+    for (let _account of accounts) {
+      const _balance = await web3.eth.getBalance(_account);
+      console.log("account[" + _counter + "]:\t" + _account + " = " + web3.utils.fromWei(_balance, 'ether'));
+      _counter += 1;
+      if (_counter == 3) break;
+    }
+    console.log("store address:\t" + __address);
+    console.log("store owner:\t" + __owner);
   });
 
   beforeEach(async () => {
@@ -33,11 +34,6 @@ contract('Bileto', async (accounts) => {
     __refundable = await __contract.storeRefundableBalance();
     __lastEvent = await __contract.eventsCounter();
     __lastPurchase = await __contract.purchasesCounter();
-    // console.log("store status:\t" + __status);
-    // console.log("store balance:\t" + web3.utils.fromWei(__balance, "ether"));
-    // console.log("store refund:\t" + web3.utils.fromWei(__refundable, "ether"));
-    // console.log("last event:\t" + __lastEvent);
-    // console.log("last purchase:\t" + __lastPurchase);
   });
 
   it("should create store", async () => {
@@ -49,7 +45,7 @@ contract('Bileto', async (accounts) => {
   it("should not open store for non-owner", async () => {
     await truffleAssert.reverts(
       __contract.openStore({
-        from: accounts[1]
+        from: __organizer1
       }),
       "by owner");
   });
@@ -64,7 +60,7 @@ contract('Bileto', async (accounts) => {
   it("should not suspend store for non-owner", async () => {
     await truffleAssert.reverts(
       __contract.suspendStore({
-        from: accounts[1]
+        from: __organizer1
       }),
       "by owner");
   });
@@ -87,12 +83,12 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
-        accounts[1],
+        __organizer1,
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
         10, {
-          from: accounts[1]
+          from: __organizer1
         }),
       "owner");
   });
@@ -113,7 +109,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "",
-        accounts[1],
+        __organizer1,
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
@@ -125,7 +121,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
-        accounts[1],
+        __organizer1,
         "",
         1000,
         web3.utils.toWei("0.1", "ether"),
@@ -137,7 +133,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
-        accounts[1],
+        __organizer1,
         "BILETO EVENT 1",
         10001,
         web3.utils.toWei("0.1", "ether"),
@@ -149,7 +145,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
-        accounts[1],
+        __organizer1,
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
@@ -160,7 +156,7 @@ contract('Bileto', async (accounts) => {
   it("should create an event", async () => {
     const _result = await __contract.createEvent(
       "BILETO-EVENT-1",
-      accounts[1],
+      __organizer1,
       "BILETO EVENT 1",
       1000,
       web3.utils.toWei("0.1", "ether"),
@@ -176,7 +172,7 @@ contract('Bileto', async (accounts) => {
     const _hash = web3.utils.keccak256("BILETO-EVENT-1");
     assert.strictEqual(_info._eventStatus.toNumber(), 0, "event status is not EventStatus.Created (0)");
     assert.strictEqual(_info._externalId, _hash, "event external ID hash is incorrect");
-    assert.strictEqual(_info._organizer, accounts[1], "event organizer address is incorrect");
+    assert.strictEqual(_info._organizer, __organizer1, "event organizer address is incorrect");
     assert.strictEqual(_info._name, "BILETO EVENT 1", "event name is incorrect");
     assert.strictEqual(_info._storeIncentive.toNumber(), 1000, "event store incentive is incorrect");
     assert.strictEqual(_info._ticketPrice.toString(), web3.utils.toWei("0.1", "ether"), "event ticket price is incorrect");
@@ -203,7 +199,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "started");
@@ -211,7 +207,7 @@ contract('Bileto', async (accounts) => {
 
   it("should start ticket sales of an event", async () => {
     const _result = await __contract.startTicketSales(__lastEvent, {
-      from: accounts[1]
+      from: __organizer1
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 1, "event status is not EventStatus.SalesStarted (1)");
@@ -226,7 +222,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "quantity");
@@ -240,7 +236,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "not enough");
@@ -254,7 +250,7 @@ contract('Bileto', async (accounts) => {
         "",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "external ID");
@@ -268,7 +264,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         0,
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "purchase date");
@@ -282,7 +278,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
         }),
       "customer ID");
@@ -296,7 +292,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.01", "ether")
         }),
       "customer funds");
@@ -310,7 +306,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-EVENT-1-PURCHASE-1",
         (new Date).getTime(),
         "BILETO-CUSTOMER-1", {
-          from: accounts[2],
+          from: __customer1,
           value: web3.utils.toWei("0.11", "ether")
         }),
       "customer funds");
@@ -323,7 +319,7 @@ contract('Bileto', async (accounts) => {
       "BILETO-EVENT-1-PURCHASE-1",
       __timestamp,
       "BILETO-CUSTOMER-1", {
-        from: accounts[2],
+        from: __customer1,
         value: web3.utils.toWei("0.1", "ether")
       });
     const _purchaseId = await __contract.purchasesCounter();
@@ -339,7 +335,7 @@ contract('Bileto', async (accounts) => {
     assert.strictEqual(_info._purchaseStatus.toString(), "0", "purchase status is not PurchaseStatus.Completed (0)");
     assert.strictEqual(_info._externalId, _hash1, "purchase external ID hash is incorrect");
     assert.strictEqual(_info._timestamp.toString(), __timestamp.toString(), "purchase timestamp is incorrect")
-    assert.strictEqual(_info._customer, accounts[2], "customer address is incorrect");
+    assert.strictEqual(_info._customer, __customer1, "customer address is incorrect");
     assert.strictEqual(_info._customerId, _hash2, "customer external ID hash is incorrect");
     assert.strictEqual(_info._quantity.toString(), "1", "quantity of tickets purchased is incorrect");
     assert.strictEqual(_info._total.toString(), web3.utils.toWei("0.1", "ether"), "event ticket price is incorrect");
@@ -348,7 +344,7 @@ contract('Bileto', async (accounts) => {
 
   it("should suspend ticket sales of an event", async () => {
     const _result = await __contract.suspendTicketSales(__lastEvent, {
-      from: accounts[1]
+      from: __organizer1
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 2, "event status is not EventStatus.SalesSuspended (2)");
@@ -357,16 +353,28 @@ contract('Bileto', async (accounts) => {
 
   it("should end ticket sales of an event", async () => {
     const _result = await __contract.endTicketSales(__lastEvent, {
-      from: accounts[1]
+      from: __organizer1
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 3, "event status is not EventStatus.SalesFinished (3)");
     truffleAssert.eventEmitted(_result, "EventSalesFinished");
   });
 
+  it("should cancel a purchase", async () => {
+
+  });
+
+  it("should refund a purchase", async () => {
+
+  });
+
+  it("should check-in customer", async () => {
+
+  });
+
   it("should complete an event", async () => {
     const _result = await __contract.completeEvent(__lastEvent, {
-      from: accounts[1]
+      from: __organizer1
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 4, "event status is not EventStatus.Completed (4)");
@@ -382,30 +390,17 @@ contract('Bileto', async (accounts) => {
 
   it("should cancel an event", async () => {
     const _result = await __contract.cancelEvent(__lastEvent, {
-      from: accounts[1]
+      from: __organizer1
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 6, "event status is not EventStatus.Cancelled (6)");
     truffleAssert.eventEmitted(_result, "EventCancelled");
   });
 
-
-  it("should cancel a purchase", async () => {
-
-  });
-
-  it("should refund a purchase", async () => {
-
-  });
-
-  it("should check-in customer", async () => {
-
-  });
-
   it("should not close store for non-owner", async () => {
     await truffleAssert.reverts(
       __contract.closeStore({
-        from: accounts[1]
+        from: __organizer1
       }),
       "owner");
   });
