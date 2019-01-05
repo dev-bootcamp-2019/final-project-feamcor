@@ -13,7 +13,8 @@
   "author": "Fábio Corrêa <feamcor@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "openzeppelin-solidity": "^2.1.0-rc.2"
+    "openzeppelin-solidity": "^2.1.0-rc.2",
+    "truffle-hdwallet-provider": "^1.0.0-web3one.5"
   },
   "devDependencies": {
     "truffle-assertions": "^0.7.2"
