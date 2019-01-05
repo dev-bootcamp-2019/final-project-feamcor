@@ -22,10 +22,12 @@
  *
  */
 
-const fs = require('fs');
+require('dotenv').config();
 const HDWallet = require('truffle-hdwallet-provider');
-const infuraKey = fs.readFileSync(".infura_project_id").toString().trim();
-const mnemonic = fs.readFileSync(".metamask_seed_phrase").toString().trim();
+const infuraProjectId = process.env["INFURA_PROJECT_ID"];
+const metamaskSeedPhrase = process.env["METAMASK_SEED_PHRASE"];
+const rinkebyAddressIndex = process.env["RINKEBY_ADDRESS_INDEX"];
+const rinkebyNumAddresses = process.env["RINKEBY_NUM_ADDRESSES"];
 
 module.exports = {
   // plugins: [ "truffle-analyze" ],
@@ -75,7 +77,11 @@ module.exports = {
     // },
 
     rinkeby: {
-      provider: () => new HDWallet(mnemonic, `https://rinkeby.infura.io/v3/${infuraKey}`),
+      provider: () => new HDWallet(
+        metamaskSeedPhrase,
+        `https://rinkeby.infura.io/v3/${infuraProjectId}`,
+        rinkebyAddressIndex,
+        rinkebyNumAddresses),
       network_id: 4,
       skipDryRun: true
     },
