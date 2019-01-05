@@ -14,7 +14,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "dotenv": "^6.2.0",
-    "openzeppelin-solidity": "^2.1.0-rc.2",
+    "openzeppelin-solidity": "2.1.1",
     "truffle-hdwallet-provider": "^1.0.0-web3one.5"
   },
   "devDependencies": {
