@@ -2,3 +2,5 @@
 /bileto/build
 /bileto/node_modules
 .idea
+.infura_project_id
+.metamask_seed_phrase
