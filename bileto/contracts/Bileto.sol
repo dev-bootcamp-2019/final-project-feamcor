@@ -568,13 +568,6 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @notice Basic info are those static attributes set when event is created.
     /// @param _eventId event internal ID
     /// @return Event status, external ID, organizer address, event name, store incentive, ticket price and quantity of tickets for sale
-    // @return event status
-    // @return event external ID
-    // @return event organizer address
-    // @return event name
-    // @return store incentive for the event
-    // @return event ticket price
-    // @return quantity of tickets on sale for the event
     function fetchEventInfo(uint _eventId)
         external
         view
@@ -602,14 +595,6 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @notice Sales info are those attributes which change upon each purchase/cancellation transaction.
     /// @param _eventId event internal ID
     /// @return Event status, tickets sold/left/cancelled/refunded/checked-in, event total/refundable balances
-    // @return event status
-    // @return quantity of tickets sold for the event
-    // @return quantity of tickets available for sale
-    // @return quantity of tickets that were sold and then cancelled
-    // @return quantity of cancelled tickets that were already refunded
-    // @return quantity of tickets that already checked into the event
-    // @return balance of the event resulting from sales of tickets
-    // @return balance to be refunded due to cancellations
     function fetchEventSalesInfo(uint _eventId)
         external
         view
@@ -638,14 +623,6 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @notice Fetch purchase information.
     /// @param _purchaseId purchase internal ID
     /// @return Purchase status, external ID, timestamp, customer address/ID, quantity of tickets, total and event ID
-    // @return purchase status
-    // @return hash of purchase external ID
-    // @return purchase external timestamp
-    // @return customer address
-    // @return hash of customer external ID
-    // @return quantity of tickets purchased
-    // @return total of purchase (quantity * ticket price)
-    // @return ID of the event related to the purchase
     function fetchPurchaseInfo(uint _purchaseId)
         external
         view
