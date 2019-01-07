@@ -46,8 +46,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.openStore({
         from: __organizer1
-      }),
-      "by owner");
+      }));
   });
 
   it("should open store", async () => {
@@ -61,8 +60,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.suspendStore({
         from: __organizer1
-      }),
-      "by owner");
+      }));
   });
 
   it("should suspend store", async () => {
@@ -89,8 +87,7 @@ contract('Bileto', async (accounts) => {
         web3.utils.toWei("0.1", "ether"),
         10, {
           from: __organizer1
-        }),
-      "owner");
+        }));
   });
 
   it("should not create an event when organizer is a contract", async () => {
@@ -101,8 +98,7 @@ contract('Bileto', async (accounts) => {
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
-        10),
-      "contract");
+        10));
   });
 
   it("should not create an event without external ID", async () => {
@@ -113,8 +109,7 @@ contract('Bileto', async (accounts) => {
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
-        10),
-      "external ID");
+        10));
   });
 
   it("should not create an event without name", async () => {
@@ -125,8 +120,7 @@ contract('Bileto', async (accounts) => {
         "",
         1000,
         web3.utils.toWei("0.1", "ether"),
-        10),
-      "name");
+        10));
   });
 
   it("should not create an event with incentive greater than 100%", async () => {
@@ -137,8 +131,7 @@ contract('Bileto', async (accounts) => {
         "BILETO EVENT 1",
         10001,
         web3.utils.toWei("0.1", "ether"),
-        10),
-      "incentive");
+        10));
   });
 
   it("should not create an event with no tickets available for sale", async () => {
@@ -149,8 +142,7 @@ contract('Bileto', async (accounts) => {
         "BILETO EVENT 1",
         1000,
         web3.utils.toWei("0.1", "ether"),
-        0),
-      "available");
+        0));
   });
 
   it("should create an event", async () => {
@@ -201,8 +193,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "started");
+        }));
   });
 
   it("should start ticket sales of an event", async () => {
@@ -224,8 +215,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "quantity");
+        }));
   });
 
   it("should not complete purchase when there are not enough tickets", async () => {
@@ -238,8 +228,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "not enough");
+        }));
   });
 
   it("should not complete purchase without external ID", async () => {
@@ -252,8 +241,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "external ID");
+        }));
   });
 
   it("should not complete purchase without timestamp", async () => {
@@ -266,8 +254,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "purchase date");
+        }));
   });
 
   it("should not complete purchase without customer ID", async () => {
@@ -280,8 +267,7 @@ contract('Bileto', async (accounts) => {
         "", {
           from: __customer1,
           value: web3.utils.toWei("0.1", "ether")
-        }),
-      "customer ID");
+        }));
   });
 
   it("should not complete purchase value less than total", async () => {
@@ -294,8 +280,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.01", "ether")
-        }),
-      "customer funds");
+        }));
   });
 
   it("should not complete purchase value more than total", async () => {
@@ -308,8 +293,7 @@ contract('Bileto', async (accounts) => {
         "BILETO-CUSTOMER-1", {
           from: __customer1,
           value: web3.utils.toWei("0.11", "ether")
-        }),
-      "customer funds");
+        }));
   });
 
   it("should complete a purchase", async () => {
@@ -401,8 +385,7 @@ contract('Bileto', async (accounts) => {
     await truffleAssert.reverts(
       __contract.closeStore({
         from: __organizer1
-      }),
-      "owner");
+      }));
   });
 
   it("should close store", async () => {
