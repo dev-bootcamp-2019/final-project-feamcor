@@ -9,6 +9,13 @@
   - [Enhancements](#enhancements)
   - [Project Specifications](#project-specifications)
   - [Project Requirements](#project-requirements)
+    - [User Interface](#user-interface)
+    - [Testing](#testing)
+    - [Design Patterns](#design-patterns)
+    - [Security Tools / Common Attacks](#security-tools--common-attacks)
+    - [Use a Library or Extend a Contract](#use-a-library-or-extend-a-contract)
+    - [Deployment](#deployment)
+    - [Stretch](#stretch)
 
 ## Introduction
 __Bileto__ is a standalone smart contract which implements the business of a simple online ticket store.
@@ -48,6 +55,7 @@ A list of possible enhancements for this contract are:
   - _BiletoEvent_ - to be deployed when an event is created.
 - Replace store currency from Ether to a utility token.
 - Integrate customer identification with UPort or other sovereign identity provider.
+- Turn individual tickets into [ERC-721](https://eips.ethereum.org/EIPS/eip-721) NFT deeds.
 - _etc._
 
 ---
