@@ -296,7 +296,7 @@ contract('Bileto', async (accounts) => {
         }));
   });
 
-  it("should complete a purchase", async () => {
+  it("should complete 1st purchase", async () => {
     const _result = await __contract.purchaseTickets(
       __lastEvent,
       1,
@@ -326,6 +326,18 @@ contract('Bileto', async (accounts) => {
     assert.strictEqual(_info._eventId.toString(), __lastEvent.toString(), "event ID is incorrect");
   });
 
+  it("should cancel a purchase", async () => {
+    const _result = await __contract.cancelPurchase(
+      __lastPurchase,
+      "BILETO-EVENT-1-PURCHASE-1",
+      "BILETO-CUSTOMER-1", {
+        from: __customer1,
+      });
+    const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
+    assert.strictEqual(_info._purchaseStatus.toNumber(), 1, "purchase status is not PurchaseStatus.Cancelled (1)");
+    truffleAssert.eventEmitted(_result, "PurchaseCancelled");
+  });
+
   it("should suspend ticket sales of an event", async () => {
     const _result = await __contract.suspendTicketSales(__lastEvent, {
       from: __organizer1
@@ -333,6 +345,58 @@ contract('Bileto', async (accounts) => {
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(_info._eventStatus.toNumber(), 2, "event status is not EventStatus.SalesSuspended (2)");
     truffleAssert.eventEmitted(_result, "EventSalesSuspended");
+  });
+
+  it("should refund a cancelled purchase", async () => {
+    const _result = await __contract.refundPurchase(
+      __lastEvent,
+      __lastPurchase, {
+        from: __organizer1,
+      });
+    const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
+    assert.strictEqual(_info._purchaseStatus.toNumber(), 2, "purchase status is not PurchaseStatus.Refunded (2)");
+    truffleAssert.eventEmitted(_result, "PurchaseRefunded");
+  });
+
+  it("should start ticket sales of a suspended event", async () => {
+    const _result = await __contract.startTicketSales(__lastEvent, {
+      from: __organizer1
+    });
+    const _info = await __contract.fetchEventInfo.call(__lastEvent);
+    assert.strictEqual(_info._eventStatus.toNumber(), 1, "event status is not EventStatus.SalesStarted (1)");
+    truffleAssert.eventEmitted(_result, "EventSalesStarted");
+  });
+
+  it("should complete 2nd purchase", async () => {
+    const _result = await __contract.purchaseTickets(
+      __lastEvent,
+      3,
+      "BILETO-EVENT-1-PURCHASE-2",
+      __timestamp,
+      "BILETO-CUSTOMER-1", {
+        from: __customer1,
+        value: web3.utils.toWei("0.3", "ether")
+      });
+    const _purchaseId = await __contract.purchasesCounter();
+    const _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
+    assert.strictEqual(_info._purchaseStatus.toNumber(), 0, "purchase status is not PurchaseStatus.Completed (0)");
+    truffleAssert.eventEmitted(_result, "PurchaseCompleted");
+  });
+
+  it("should complete 3rd purchase", async () => {
+    const _result = await __contract.purchaseTickets(
+      __lastEvent,
+      2,
+      "BILETO-EVENT-1-PURCHASE-3",
+      __timestamp,
+      "BILETO-CUSTOMER-1", {
+        from: __customer1,
+        value: web3.utils.toWei("0.2", "ether")
+      });
+    const _purchaseId = await __contract.purchasesCounter();
+    const _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
+    assert.strictEqual(_info._purchaseStatus.toNumber(), 0, "purchase status is not PurchaseStatus.Completed (0)");
+    truffleAssert.eventEmitted(_result, "PurchaseCompleted");
   });
 
   it("should end ticket sales of an event", async () => {
@@ -344,16 +408,30 @@ contract('Bileto', async (accounts) => {
     truffleAssert.eventEmitted(_result, "EventSalesFinished");
   });
 
-  it("should cancel a purchase", async () => {
-
+  it("should not check-in invalid customer", async () => {
+    await truffleAssert.reverts(
+      __contract.checkIn(
+        __lastPurchase, {
+          from: __organizer1,
+        }));
   });
 
-  it("should refund a purchase", async () => {
-
+  it("should not check-in invalid purchase", async () => {
+    await truffleAssert.reverts(
+      __contract.checkIn(
+        100, {
+          from: __customer1,
+        }));
   });
 
   it("should check-in customer", async () => {
-
+    const _result = await __contract.checkIn(
+      __lastPurchase, {
+        from: __customer1,
+      });
+    const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
+    assert.strictEqual(_info._purchaseStatus.toNumber(), 3, "purchase status is not PurchaseStatus.CheckedIn (3)");
+    truffleAssert.eventEmitted(_result, "CustomerCheckedIn");
   });
 
   it("should complete an event", async () => {
