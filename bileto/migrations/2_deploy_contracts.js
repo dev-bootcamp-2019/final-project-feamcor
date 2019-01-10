@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 // These OpenZeppelin libraries expose "internal" functions
 // which end up being linked inline with the caller contract.
 
@@ -13,5 +15,5 @@ module.exports = function(deployer) {
   // deployer.link(Address, Bileto);
   // deployer.link(Counter, Bileto);
   // deployer.link(SafeMath, Bileto);
-  deployer.deploy(Bileto);
+  deployer.deploy(Bileto, process.env.STORE_NAME);
 };
