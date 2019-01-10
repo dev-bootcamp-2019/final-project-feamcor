@@ -5,6 +5,7 @@ contract("Bileto", async accounts => {
   let __contract;
   let __address;
   let __balance;
+  let __name;
   let __status;
   let __refundable;
   let __lastEvent;
@@ -36,11 +37,13 @@ contract("Bileto", async accounts => {
   });
 
   beforeEach(async () => {
-    __status = await __contract.storeStatus();
+    const _info = await __contract.fetchStoreInfo.call();
+    __status = _info._status;
     __balance = await web3.eth.getBalance(__address);
-    __refundable = await __contract.storeRefundableBalance();
-    __lastEvent = await __contract.eventsCounter();
-    __lastPurchase = await __contract.purchasesCounter();
+    __name = _info._name;
+    __refundable = _info._refundable;
+    __lastEvent = _info._counterEvents;
+    __lastPurchase = _info._counterPurchases;
   });
 
   it("should create store", async () => {
@@ -67,7 +70,8 @@ contract("Bileto", async accounts => {
 
   it("should open store", async () => {
     const _result = await __contract.openStore();
-    __status = await __contract.storeStatus();
+    const _info = await __contract.fetchStoreInfo.call();
+    __status = _info._status;
     assert.strictEqual(
       __status.toNumber(),
       1,
@@ -86,7 +90,8 @@ contract("Bileto", async accounts => {
 
   it("should suspend store", async () => {
     const _result = await __contract.suspendStore();
-    __status = await __contract.storeStatus();
+    const _info = await __contract.fetchStoreInfo.call();
+    __status = _info._status;
     assert.strictEqual(
       __status.toNumber(),
       2,
@@ -97,7 +102,8 @@ contract("Bileto", async accounts => {
 
   it("should re-open store", async () => {
     const _result = await __contract.openStore();
-    __status = await __contract.storeStatus();
+    const _info = await __contract.fetchStoreInfo.call();
+    __status = _info._status;
     assert.strictEqual(
       __status.toNumber(),
       1,
@@ -196,8 +202,9 @@ contract("Bileto", async accounts => {
       web3.utils.toWei("0.1", "ether"),
       10
     );
-    const _eventId = await __contract.eventsCounter();
-    const _info = await __contract.fetchEventInfo.call(_eventId);
+    let _info = await __contract.fetchStoreInfo.call();
+    const _eventId = _info._counterEvents;
+    _info = await __contract.fetchEventInfo.call(_eventId);
     assert.strictEqual(
       _info._eventStatus.toNumber(),
       0,
@@ -439,8 +446,9 @@ contract("Bileto", async accounts => {
         value: web3.utils.toWei("0.1", "ether")
       }
     );
-    const _purchaseId = await __contract.purchasesCounter();
-    const _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
+    let _info = await __contract.fetchStoreInfo.call();
+    const _purchaseId = _info._counterPurchases;
+    _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
       _info._purchaseStatus.toNumber(),
       0,
@@ -568,8 +576,9 @@ contract("Bileto", async accounts => {
         value: web3.utils.toWei("0.3", "ether")
       }
     );
-    const _purchaseId = await __contract.purchasesCounter();
-    const _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
+    let _info = await __contract.fetchStoreInfo.call();
+    const _purchaseId = _info._counterPurchases;
+    _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
       _info._purchaseStatus.toNumber(),
       0,
@@ -590,8 +599,9 @@ contract("Bileto", async accounts => {
         value: web3.utils.toWei("0.2", "ether")
       }
     );
-    const _purchaseId = await __contract.purchasesCounter();
-    const _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
+    let _info = await __contract.fetchStoreInfo.call();
+    const _purchaseId = _info._counterPurchases;
+    _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
       _info._purchaseStatus.toNumber(),
       0,
@@ -689,7 +699,8 @@ contract("Bileto", async accounts => {
 
   it("should close store", async () => {
     const _result = await __contract.closeStore();
-    __status = await __contract.storeStatus();
+    const _info = await __contract.fetchStoreInfo.call();
+    __status = _info._status;
     assert.strictEqual(
       __status.toNumber(),
       3,
