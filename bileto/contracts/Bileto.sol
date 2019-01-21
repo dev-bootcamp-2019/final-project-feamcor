@@ -11,6 +11,8 @@ import "./ReentrancyGuard.sol";
 /// @title Bileto: a simple decentralized ticket store on Ethereum
 /// @notice Final project for ConsenSys Academy's Developer Bootcamp 2019.
 contract Bileto is Ownable, ReentrancyGuard {
+    using SafeMath for uint;
+
     enum StoreStatus {
         Created,   // 0
         Open,      // 1
@@ -329,6 +331,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[eventId].ticketsOnSale = _ticketsOnSale;
         events[eventId].ticketsLeft = _ticketsOnSale;
         organizerEvents[_organizer].push(eventId);
+        if (organizerEvents[_organizer].length == 1) {
+            organizers.push(_organizer);
+        }
         emit EventCreated(eventId, events[eventId].externalId, msg.sender);
         return (eventId);
     }
@@ -418,8 +423,8 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].status = EventStatus.Settled;
         uint _eventBalance = events[_eventId].eventBalance;
         uint _storeIncentive = events[_eventId].storeIncentive;
-        uint _storeBalance = SafeMath.div(SafeMath.mul(_eventBalance, _storeIncentive), 10000);
-        uint _settlement = SafeMath.sub(_eventBalance, _storeBalance);
+        uint _storeBalance = _eventBalance.mul(_storeIncentive).div(10000);
+        uint _settlement = _eventBalance.sub(_storeBalance);
         if (_settlement > 0) {
             events[_eventId].organizer.transfer(_settlement);
         }
@@ -480,7 +485,7 @@ contract Bileto is Ownable, ReentrancyGuard {
             "ERROR-028: purchase date must be provided (not zero)");
         require(bytes(_customerId).length != 0,
             "ERROR-029: customer ID cannot be empty in order to proceed");
-        require(msg.value == SafeMath.mul(_quantity, events[_eventId].ticketPrice),
+        require(msg.value == _quantity.mul(events[_eventId].ticketPrice),
             "ERROR-030: customer funds sent on transaction must be equal to purchase total in order to proceed");
         purchaseId = Counter.next(store.counterPurchases);
         purchases[purchaseId].status = PurchaseStatus.Completed;
@@ -490,11 +495,14 @@ contract Bileto is Ownable, ReentrancyGuard {
         purchases[purchaseId].timestamp = _timestamp;
         purchases[purchaseId].customer = msg.sender;
         purchases[purchaseId].customerId = keccak256(bytes(_customerId));
-        purchases[purchaseId].total = SafeMath.mul(_quantity, events[_eventId].ticketPrice);
-        events[_eventId].ticketsSold = SafeMath.add(events[_eventId].ticketsSold, _quantity);
-        events[_eventId].ticketsLeft = SafeMath.sub(events[_eventId].ticketsLeft, _quantity);
-        events[_eventId].eventBalance = SafeMath.add(events[_eventId].eventBalance, purchases[purchaseId].total);
+        purchases[purchaseId].total = _quantity.mul(events[_eventId].ticketPrice);
+        events[_eventId].ticketsSold = events[_eventId].ticketsSold.add(_quantity);
+        events[_eventId].ticketsLeft = events[_eventId].ticketsLeft.sub(_quantity);
+        events[_eventId].eventBalance = events[_eventId].eventBalance.add(purchases[purchaseId].total);
         customerPurchases[msg.sender].push(purchaseId);
+        if (customerPurchases[msg.sender].length == 1) {
+            customers.push(msg.sender);
+        }
         emit PurchaseCompleted(purchaseId, purchases[purchaseId].externalId, msg.sender, _eventId);
         return (purchaseId);
     }
@@ -529,21 +537,11 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId,
             "ERROR-034: hashed purchase external ID must match with stored one in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Cancelled;
-        events[_eventId].ticketsCancelled = SafeMath.add(
-            events[_eventId].ticketsCancelled,
-            purchases[_purchaseId].quantity);
-        events[_eventId].ticketsLeft = SafeMath.add(
-            events[_eventId].ticketsLeft,
-            purchases[_purchaseId].quantity);
-        events[_eventId].eventBalance = SafeMath.sub(
-            events[_eventId].eventBalance,
-            purchases[_purchaseId].total);
-        events[_eventId].refundableBalance = SafeMath.add(
-            events[_eventId].refundableBalance,
-            purchases[_purchaseId].total);
-        store.refundable = SafeMath.add(
-            store.refundable,
-            purchases[_purchaseId].total);
+        events[_eventId].ticketsCancelled = events[_eventId].ticketsCancelled.add(purchases[_purchaseId].quantity);
+        events[_eventId].ticketsLeft = events[_eventId].ticketsLeft.add(purchases[_purchaseId].quantity);
+        events[_eventId].eventBalance = events[_eventId].eventBalance.sub(purchases[_purchaseId].total);
+        events[_eventId].refundableBalance = events[_eventId].refundableBalance.add(purchases[_purchaseId].total);
+        store.refundable = store.refundable.add(purchases[_purchaseId].total);
         emit PurchaseCancelled(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
@@ -562,15 +560,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(purchases[_purchaseId].status == PurchaseStatus.Cancelled,
             "ERROR-035: ticket purchase have to be cancelled in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Refunded;
-        events[_eventId].ticketsRefunded = SafeMath.add(
-            events[_eventId].ticketsRefunded,
-            purchases[_purchaseId].quantity);
-        events[_eventId].refundableBalance = SafeMath.sub(
-            events[_eventId].refundableBalance,
-            purchases[_purchaseId].total);
-        store.refundable = SafeMath.sub(
-            store.refundable,
-            purchases[_purchaseId].total);
+        events[_eventId].ticketsRefunded = events[_eventId].ticketsRefunded.add(purchases[_purchaseId].quantity);
+        events[_eventId].refundableBalance = events[_eventId].refundableBalance.sub(purchases[_purchaseId].total);
+        store.refundable = store.refundable.sub(purchases[_purchaseId].total);
         purchases[_purchaseId].customer.transfer(purchases[_purchaseId].total);
         emit PurchaseRefunded(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
