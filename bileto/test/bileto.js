@@ -38,12 +38,12 @@ contract("Bileto", async accounts => {
 
   beforeEach(async () => {
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info._status;
+    __status = _info.storeStatus;
     __balance = await web3.eth.getBalance(__address);
-    __name = _info._name;
-    __refundable = _info._refundable;
-    __lastEvent = _info._counterEvents;
-    __lastPurchase = _info._counterPurchases;
+    __name = _info.storeName;
+    __refundable = _info.storeRefundableBalance;
+    __lastEvent = _info.storeCounterEvents;
+    __lastPurchase = _info.storeCounterPurchases;
   });
 
   it("should create store", async () => {
@@ -71,7 +71,7 @@ contract("Bileto", async accounts => {
   it("should open store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info._status;
+    __status = _info.storeStatus;
     assert.strictEqual(
       __status.toNumber(),
       1,
@@ -91,7 +91,7 @@ contract("Bileto", async accounts => {
   it("should suspend store", async () => {
     const _result = await __contract.suspendStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info._status;
+    __status = _info.storeStatus;
     assert.strictEqual(
       __status.toNumber(),
       2,
@@ -103,7 +103,7 @@ contract("Bileto", async accounts => {
   it("should re-open store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info._status;
+    __status = _info.storeStatus;
     assert.strictEqual(
       __status.toNumber(),
       1,
@@ -203,10 +203,10 @@ contract("Bileto", async accounts => {
       10
     );
     let _info = await __contract.fetchStoreInfo.call();
-    const _eventId = _info._counterEvents;
+    const _eventId = _info.storeCounterEvents;
     _info = await __contract.fetchEventInfo.call(_eventId);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       0,
       "event status is not EventStatus.Created (0)"
     );
@@ -217,37 +217,37 @@ contract("Bileto", async accounts => {
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     const _hash = web3.utils.keccak256("BILETO-EVENT-1");
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       0,
       "event status is not EventStatus.Created (0)"
     );
     assert.strictEqual(
-      _info._externalId,
+      _info.eventExternalId,
       _hash,
       "event external ID hash is incorrect"
     );
     assert.strictEqual(
-      _info._organizer,
+      _info.eventOrganizer,
       __organizer1,
       "event organizer address is incorrect"
     );
     assert.strictEqual(
-      _info._name,
+      _info.eventName,
       "BILETO EVENT 1",
       "event name is incorrect"
     );
     assert.strictEqual(
-      _info._storeIncentive.toNumber(),
+      _info.eventStoreIncentive.toNumber(),
       1000,
       "event store incentive is incorrect"
     );
     assert.strictEqual(
-      _info._ticketPrice.toString(),
+      _info.eventTicketPrice.toString(),
       web3.utils.toWei("0.1", "ether"),
       "event ticket price is incorrect"
     );
     assert.strictEqual(
-      _info._ticketsOnSale.toNumber(),
+      _info.eventTicketsOnSale.toNumber(),
       10,
       "event tickets on sale is incorrect"
     );
@@ -257,37 +257,37 @@ contract("Bileto", async accounts => {
     const _basic = await __contract.fetchEventInfo.call(__lastEvent);
     const _info = await __contract.fetchEventSalesInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._ticketsSold.toNumber(),
+      _info.eventTicketsSold.toNumber(),
       0,
       "event tickets sold should be zero"
     );
     assert.strictEqual(
-      _info._ticketsLeft.toNumber(),
-      _basic._ticketsOnSale.toNumber(),
+      _info.eventTicketsLeft.toNumber(),
+      _basic.eventTicketsOnSale.toNumber(),
       "event tickets left should be equal to tickets on sale"
     );
     assert.strictEqual(
-      _info._ticketsCancelled.toNumber(),
+      _info.eventTicketsCancelled.toNumber(),
       0,
       "event tickets cancelled should be zero"
     );
     assert.strictEqual(
-      _info._ticketsRefunded.toNumber(),
+      _info.eventTicketsRefunded.toNumber(),
       0,
       "event tickets refunded should be zero"
     );
     assert.strictEqual(
-      _info._ticketsCheckedIn.toNumber(),
+      _info.eventTicketsCheckedIn.toNumber(),
       0,
       "event tickets checked-in should be zero"
     );
     assert.strictEqual(
-      _info._eventBalance.toNumber(),
+      _info.eventBalance.toNumber(),
       0,
       "event balance should be zero"
     );
     assert.strictEqual(
-      _info._refundableBalance.toNumber(),
+      _info.eventRefundableBalance.toNumber(),
       0,
       "event refundable balance should be zero"
     );
@@ -315,7 +315,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       1,
       "event status is not EventStatus.SalesStarted (1)"
     );
@@ -447,10 +447,10 @@ contract("Bileto", async accounts => {
       }
     );
     let _info = await __contract.fetchStoreInfo.call();
-    const _purchaseId = _info._counterPurchases;
+    const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       0,
       "purchase status is not PurchaseStatus.Completed (0)"
     );
@@ -462,42 +462,42 @@ contract("Bileto", async accounts => {
     const _hash1 = web3.utils.keccak256("BILETO-EVENT-1-PURCHASE-1");
     const _hash2 = web3.utils.keccak256("BILETO-CUSTOMER-1");
     assert.strictEqual(
-      _info._purchaseStatus.toString(),
+      _info.purchaseStatus.toString(),
       "0",
       "purchase status is not PurchaseStatus.Completed (0)"
     );
     assert.strictEqual(
-      _info._externalId,
+      _info.purchaseExternalId,
       _hash1,
       "purchase external ID hash is incorrect"
     );
     assert.strictEqual(
-      _info._timestamp.toString(),
+      _info.purchaseTimestamp.toString(),
       __timestamp.toString(),
       "purchase timestamp is incorrect"
     );
     assert.strictEqual(
-      _info._customer,
+      _info.purchaseCustomer,
       __customer1,
       "customer address is incorrect"
     );
     assert.strictEqual(
-      _info._customerId,
+      _info.purchaseCustomerId,
       _hash2,
       "customer external ID hash is incorrect"
     );
     assert.strictEqual(
-      _info._quantity.toString(),
+      _info.purchaseQuantity.toString(),
       "1",
       "quantity of tickets purchased is incorrect"
     );
     assert.strictEqual(
-      _info._total.toString(),
+      _info.purchaseTotal.toString(),
       web3.utils.toWei("0.1", "ether"),
       "event ticket price is incorrect"
     );
     assert.strictEqual(
-      _info._eventId.toString(),
+      _info.purchaseEventId.toString(),
       __lastEvent.toString(),
       "event ID is incorrect"
     );
@@ -514,7 +514,7 @@ contract("Bileto", async accounts => {
     );
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       1,
       "purchase status is not PurchaseStatus.Cancelled (1)"
     );
@@ -527,7 +527,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       2,
       "event status is not EventStatus.SalesSuspended (2)"
     );
@@ -544,7 +544,7 @@ contract("Bileto", async accounts => {
     );
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       2,
       "purchase status is not PurchaseStatus.Refunded (2)"
     );
@@ -557,7 +557,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       1,
       "event status is not EventStatus.SalesStarted (1)"
     );
@@ -577,10 +577,10 @@ contract("Bileto", async accounts => {
       }
     );
     let _info = await __contract.fetchStoreInfo.call();
-    const _purchaseId = _info._counterPurchases;
+    const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       0,
       "purchase status is not PurchaseStatus.Completed (0)"
     );
@@ -600,10 +600,10 @@ contract("Bileto", async accounts => {
       }
     );
     let _info = await __contract.fetchStoreInfo.call();
-    const _purchaseId = _info._counterPurchases;
+    const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       0,
       "purchase status is not PurchaseStatus.Completed (0)"
     );
@@ -616,7 +616,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       3,
       "event status is not EventStatus.SalesFinished (3)"
     );
@@ -645,7 +645,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     assert.strictEqual(
-      _info._purchaseStatus.toNumber(),
+      _info.purchaseStatus.toNumber(),
       3,
       "purchase status is not PurchaseStatus.CheckedIn (3)"
     );
@@ -658,7 +658,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       4,
       "event status is not EventStatus.Completed (4)"
     );
@@ -669,7 +669,7 @@ contract("Bileto", async accounts => {
     const _result = await __contract.settleEvent(__lastEvent);
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       5,
       "event status is not EventStatus.Settled (5)"
     );
@@ -682,7 +682,7 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info._eventStatus.toNumber(),
+      _info.eventStatus.toNumber(),
       6,
       "event status is not EventStatus.Cancelled (6)"
     );
@@ -700,7 +700,7 @@ contract("Bileto", async accounts => {
   it("should close store", async () => {
     const _result = await __contract.closeStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info._status;
+    __status = _info.storeStatus;
     assert.strictEqual(
       __status.toNumber(),
       3,
