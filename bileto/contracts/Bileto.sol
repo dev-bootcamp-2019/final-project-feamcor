@@ -736,7 +736,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(organizerEvents[_organizer].length != 0,
             "ERROR-040: organizer has not created events yet");
         require(_index < organizerEvents[_organizer].length,
-            "ERROR-041: invalid index");
+            "ERROR-041: invalid index (organizerEvents)");
         eventId = organizerEvents[_organizer][_index];
         return eventId;
     }
@@ -767,7 +767,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(customerPurchases[_customer].length != 0,
             "ERROR-043: customer has not purchased tickets yet");
         require(_index < customerPurchases[_customer].length,
-            "ERROR-044: invalid index");
+            "ERROR-044: invalid index (customerPurchases)");
         purchaseId = customerPurchases[_customer][_index];
         return purchaseId;
     }
@@ -783,6 +783,20 @@ contract Bileto is Ownable, ReentrancyGuard {
         return countOrganizers;
     }
 
+    /// @notice Get address of an organizer, according to its position on list of organizers who delt with the store.
+    /// @param _index position in the list. Starting from zero
+    /// @return Organizer address
+    function getOrganizerByIndex(uint _index)
+        external
+        view
+        returns (address organizer)
+    {
+        require(_index < organizers.length,
+            "ERROR-045: invalid index (organizers)");
+        organizer = organizers[_index];
+        return organizer;
+    }
+
     /// @notice Get number of customers who purchased tickets from the store.
     /// @return Count of customers. Zero in case of none yet.
     function getCountCustomers() 
@@ -792,6 +806,20 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         countCustomers = customers.length;
         return countCustomers;
+    }
+
+    /// @notice Get address of an customer, according to its position on list of customers who purchased from the store.
+    /// @param _index position in the list. Starting from zero
+    /// @return Customer address
+    function getCustomerByIndex(uint _index)
+        external
+        view
+        returns (address customer)
+    {
+        require(_index < customers.length,
+            "ERROR-046: invalid index (customers)");
+        customer = customers[_index];
+        return customer;
     }
 
 }
