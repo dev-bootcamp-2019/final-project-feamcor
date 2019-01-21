@@ -27,6 +27,6 @@ contract ReentrancyGuard {
         _guardCounter += 1;
         uint256 localCounter = _guardCounter;
         _;
-        require(localCounter == _guardCounter, "invalid reentrant call");
+        require(localCounter == _guardCounter, "REENTRY-001: invalid reentrant call");
     }
 }

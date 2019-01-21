@@ -17,7 +17,7 @@ library SafeMath {
         }
 
         uint256 c = a * b;
-        require(c / a == b, "multiplication has overflown");
+        require(c / a == b, "SAFE-001: multiplication has overflown");
 
         return c;
     }
@@ -27,7 +27,7 @@ library SafeMath {
     */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
         // Solidity only automatically asserts when dividing by 0
-        require(b != 0, "cannot divide by zero");
+        require(b != 0, "SAFE-002: cannot divide by zero");
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
@@ -38,7 +38,7 @@ library SafeMath {
     * @dev Subtracts two unsigned integers, reverts on overflow (i.e. if subtrahend is greater than minuend).
     */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b <= a, "subtrahend is greater than minuend");
+        require(b <= a, "SAFE-003: subtrahend is greater than minuend");
         uint256 c = a - b;
 
         return c;
@@ -49,7 +49,7 @@ library SafeMath {
     */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
-        require(c >= a, "addition has overflown");
+        require(c >= a, "SAFE-004: addition has overflown");
 
         return c;
     }
@@ -59,7 +59,7 @@ library SafeMath {
     * reverts when dividing by zero.
     */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "cannot divide by zero");
+        require(b != 0, "SAFE-005: cannot divide by zero");
         return a % b;
     }
 }
