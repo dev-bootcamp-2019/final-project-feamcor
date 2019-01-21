@@ -1,6 +1,16 @@
 {
-  "name": "client",
+  "name": "bileto-client",
   "version": "0.1.0",
+  "author": "Fábio Corrêa <feamcor@gmail.com>",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "truffle",
+    "ganache",
+    "drizzle",
+    "react"
+  ],
   "private": true,
   "dependencies": {
     "bootstrap": "^4.2.1",
