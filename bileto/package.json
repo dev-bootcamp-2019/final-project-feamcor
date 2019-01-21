@@ -1,7 +1,17 @@
 {
   "name": "bileto",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Decentralized ticket store on Ethereum",
+  "author": "Fábio Corrêa <feamcor@gmail.com>",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "truffle",
+    "ganache",
+    "drizzle",
+    "react"
+  ],
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
@@ -9,15 +19,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "Fábio Corrêa <feamcor@gmail.com>",
-  "license": "BSD-3-Clause",
   "dependencies": {
-    "dotenv": "^6.2.0",
+    "dotenv": "6.2.0",
     "openzeppelin-solidity": "2.1.1",
-    "truffle-hdwallet-provider": "^1.0.0-web3one.5"
-  },
-  "devDependencies": {
-    "truffle-assertions": "^0.7.2"
+    "truffle-assertions": "0.7.2",
+    "truffle-hdwallet-provider": "1.0.2"
   }
 }
