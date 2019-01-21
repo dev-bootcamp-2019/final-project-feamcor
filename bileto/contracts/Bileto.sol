@@ -73,11 +73,15 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     Store private store;
 
+    address[] private organizers;
+    
     mapping(uint => Event) private events;
 
-    mapping(uint => Purchase) private purchases;
-
     mapping(address => uint[]) private organizerEvents;
+
+    address[] private customers;
+
+    mapping(uint => Purchase) private purchases;
 
     mapping(address => uint[]) private customerPurchases;
 
@@ -180,42 +184,42 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @dev Verify that ticket store is open, otherwise revert.
     modifier storeOpen() {
         require(store.status == StoreStatus.Open,
-            "ticket store must be open in order to proceed");
+            "ERROR-001: ticket store must be open in order to proceed");
         _;
     }
 
     /// @dev Verify that event ID is within current range.
     modifier validEventId(uint _eventId) {
         require(_eventId <= store.counterEvents.current,
-            "invalid event ID");
+            "ERROR-002: invalid event ID");
         _;
     }
 
     /// @dev Verify that purchase ID is within current range.
     modifier validPurchaseId(uint _purchaseId) {
         require(_purchaseId <= store.counterPurchases.current,
-            "invalid purchase ID");
+            "ERROR-003: invalid purchase ID");
         _;
     }
 
     /// @dev Verify that transaction on an event was triggered by its organizer, otherwise revert.
     modifier onlyOrganizer(uint _eventId) {
         require(msg.sender == events[_eventId].organizer,
-            "must be triggered by event organizer in order to proceed");
+            "ERROR-004: must be triggered by event organizer in order to proceed");
         _;
     }
 
     /// @dev Verify that transaction on an event was triggered by its organizer or store owner.
     modifier onlyOwnerOrOrganizer(uint _eventId) {
         require(isOwner() || msg.sender == events[_eventId].organizer,
-            "must be triggered by event organizer or store owner in order to proceed");
+            "ERROR-005: must be triggered by event organizer or store owner in order to proceed");
         _;
     }
 
     /// @dev Verify that a purchase was completed, otherwise revert.
     modifier purchaseCompleted(uint _purchaseId) {
         require(purchases[_purchaseId].status == PurchaseStatus.Completed,
-            "ticket purchase have to be completed in order to proceed");
+            "ERROR-006: ticket purchase have to be completed in order to proceed");
         _;
     }
 
@@ -223,7 +227,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @dev store owner is set by the account who created the store
     constructor(string memory _name) public {
         require(bytes(_name).length != 0,
-            "store name must not be empty in order to proceed");
+            "ERROR-007: store name must not be empty in order to proceed");
         store.name = _name;
         store.status = StoreStatus.Created;
     }
@@ -234,7 +238,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         payable
     {
         require(msg.data.length == 0,
-            "only funds transfer (i.e. no data) accepted on fallback");
+            "ERROR-008: only funds transfer (i.e. no data) accepted on fallback");
     }
 
     /// @notice Open ticket store.
@@ -246,7 +250,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(store.status == StoreStatus.Created
             || store.status == StoreStatus.Suspended,
-            "ticket store must be created or suspended in order to proceed");
+            "ERROR-009: ticket store must be created or suspended in order to proceed");
         store.status = StoreStatus.Open;
         emit StoreOpen(msg.sender);
     }
@@ -274,9 +278,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         onlyOwner
     {
         require(store.status != StoreStatus.Closed,
-            "ticket store cannot be closed in order to proceed");
+            "ERROR-010: ticket store cannot be closed in order to proceed");
         require(store.refundable == 0,
-            "ticket store refundable balance must be zero in order to proceed");
+            "ERROR-011: ticket store refundable balance must be zero in order to proceed");
         store.status = StoreStatus.Closed;
         emit StoreClosed(msg.sender);
     }
@@ -302,31 +306,31 @@ contract Bileto is Ownable, ReentrancyGuard {
         nonReentrant
         onlyOwner
         storeOpen
-        returns (uint _eventId)
+        returns (uint eventId)
     {
         require(!Address.isContract(_organizer),
-            "organizer address must refer to an account (i.e. not a contract) in order to proceed");
+            "ERROR-012: organizer address must refer to an account (i.e. not a contract) in order to proceed");
         require(bytes(_externalId).length != 0,
-            "ticket event external ID must not be empty in order to proceed");
+            "ERROR-013: ticket event external ID must not be empty in order to proceed");
         require(bytes(_name).length != 0,
-            "ticket event name must not be empty in order to proceed");
+            "ERROR-014: ticket event name must not be empty in order to proceed");
         require(_storeIncentive >= 0
             && _storeIncentive <= 10000,
-            "store incentive must be between 0.00% (000) to 100.00% (10000) in order to proceed");
+            "ERROR-015: store incentive must be between 0.00% (000) to 100.00% (10000) in order to proceed");
         require(_ticketsOnSale > 0,
-            "number of tickets available for sale cannot be zero in order to proceed");
-        _eventId = Counter.next(store.counterEvents);
-        events[_eventId].status = EventStatus.Created;
-        events[_eventId].externalId = keccak256(bytes(_externalId));
-        events[_eventId].organizer = _organizer;
-        events[_eventId].name = _name;
-        events[_eventId].storeIncentive = _storeIncentive;
-        events[_eventId].ticketPrice = _ticketPrice;
-        events[_eventId].ticketsOnSale = _ticketsOnSale;
-        events[_eventId].ticketsLeft = _ticketsOnSale;
-        organizerEvents[_organizer].push(_eventId);
-        emit EventCreated(_eventId, events[_eventId].externalId, msg.sender);
-        return (_eventId);
+            "ERROR-016: number of tickets available for sale cannot be zero in order to proceed");
+        eventId = Counter.next(store.counterEvents);
+        events[eventId].status = EventStatus.Created;
+        events[eventId].externalId = keccak256(bytes(_externalId));
+        events[eventId].organizer = _organizer;
+        events[eventId].name = _name;
+        events[eventId].storeIncentive = _storeIncentive;
+        events[eventId].ticketPrice = _ticketPrice;
+        events[eventId].ticketsOnSale = _ticketsOnSale;
+        events[eventId].ticketsLeft = _ticketsOnSale;
+        organizerEvents[_organizer].push(eventId);
+        emit EventCreated(eventId, events[eventId].externalId, msg.sender);
+        return (eventId);
     }
 
     /// @notice Start sale of tickets for an event.
@@ -341,7 +345,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(events[_eventId].status == EventStatus.Created
             || events[_eventId].status == EventStatus.SalesSuspended,
-            "ticket event must be created or with sales suspended in order to proceed");
+            "ERROR-017: ticket event must be created or with sales suspended in order to proceed");
         events[_eventId].status = EventStatus.SalesStarted;
         emit EventSalesStarted(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -357,7 +361,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         onlyOrganizer(_eventId)
     {
         require(events[_eventId].status == EventStatus.SalesStarted,
-            "event ticket sales must have started in order to proceed");
+            "ERROR-018: event ticket sales must have started in order to proceed");
         events[_eventId].status = EventStatus.SalesSuspended;
         emit EventSalesSuspended(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -375,7 +379,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(events[_eventId].status == EventStatus.SalesStarted
             || events[_eventId].status == EventStatus.SalesSuspended,
-            "event ticket sales must have started or be suspended in order to proceed");
+            "ERROR-019: event ticket sales must have started or be suspended in order to proceed");
         events[_eventId].status = EventStatus.SalesFinished;
         emit EventSalesFinished(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -392,7 +396,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         onlyOrganizer(_eventId)
     {
         require(events[_eventId].status == EventStatus.SalesFinished, 
-            "event ticket sales must have finished in order to proceed");
+            "ERROR-020: event ticket sales must have finished in order to proceed");
         events[_eventId].status = EventStatus.Completed;
         emit EventCompleted(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -410,7 +414,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         onlyOwner
     {
         require(events[_eventId].status == EventStatus.Completed,
-            "ticket event must have been completed in order to proceed");
+            "ERROR-021: ticket event must have been completed in order to proceed");
         events[_eventId].status = EventStatus.Settled;
         uint _eventBalance = events[_eventId].eventBalance;
         uint _storeIncentive = events[_eventId].storeIncentive;
@@ -435,7 +439,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(events[_eventId].status == EventStatus.Created
             || events[_eventId].status == EventStatus.SalesFinished,
-            "event must have just be created or have its ticket sales suspended in order to proceed");
+            "ERROR-022: event must have just be created or have its ticket sales suspended in order to proceed");
         events[_eventId].status = EventStatus.Cancelled;
         emit EventCancelled(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -460,39 +464,39 @@ contract Bileto is Ownable, ReentrancyGuard {
         nonReentrant
         storeOpen
         validEventId(_eventId)
-        returns (uint _purchaseId)
+        returns (uint purchaseId)
     {
         require(events[_eventId].status == EventStatus.SalesStarted,
-            "event ticket sales have to had started in order to proceed");
+            "ERROR-023: event ticket sales have to had started in order to proceed");
         require(!Address.isContract(msg.sender),
-            "customer address must refer to an account (i.e. not a contract) in order to proceed");
+            "ERROR-024: customer address must refer to an account (i.e. not a contract) in order to proceed");
         require(_quantity > 0,
-            "quantity of tickets must be greater than zero in order to proceed");
+            "ERROR-025: quantity of tickets must be greater than zero in order to proceed");
         require(_quantity <= events[_eventId].ticketsLeft,
-            "not enough tickets left for the quantity requested. please change quantity in order to proceed");
+            "ERROR-026: not enough tickets left for the quantity requested. please change quantity in order to proceed");
         require(bytes(_externalId).length != 0,
-            "purchase external ID must not be empty in order to proceed");
+            "ERROR-027: purchase external ID must not be empty in order to proceed");
         require(_timestamp > 0,
-            "purchase date must be provided (not zero)");
+            "ERROR-028: purchase date must be provided (not zero)");
         require(bytes(_customerId).length != 0,
-            "customer ID cannot be empty in order to proceed");
+            "ERROR-029: customer ID cannot be empty in order to proceed");
         require(msg.value == SafeMath.mul(_quantity, events[_eventId].ticketPrice),
-            "customer funds sent on transaction must be equal to purchase total in order to proceed");
-        _purchaseId = Counter.next(store.counterPurchases);
-        purchases[_purchaseId].status = PurchaseStatus.Completed;
-        purchases[_purchaseId].eventId = _eventId;
-        purchases[_purchaseId].quantity = _quantity;
-        purchases[_purchaseId].externalId = keccak256(bytes(_externalId));
-        purchases[_purchaseId].timestamp = _timestamp;
-        purchases[_purchaseId].customer = msg.sender;
-        purchases[_purchaseId].customerId = keccak256(bytes(_customerId));
-        purchases[_purchaseId].total = SafeMath.mul(_quantity, events[_eventId].ticketPrice);
+            "ERROR-030: customer funds sent on transaction must be equal to purchase total in order to proceed");
+        purchaseId = Counter.next(store.counterPurchases);
+        purchases[purchaseId].status = PurchaseStatus.Completed;
+        purchases[purchaseId].eventId = _eventId;
+        purchases[purchaseId].quantity = _quantity;
+        purchases[purchaseId].externalId = keccak256(bytes(_externalId));
+        purchases[purchaseId].timestamp = _timestamp;
+        purchases[purchaseId].customer = msg.sender;
+        purchases[purchaseId].customerId = keccak256(bytes(_customerId));
+        purchases[purchaseId].total = SafeMath.mul(_quantity, events[_eventId].ticketPrice);
         events[_eventId].ticketsSold = SafeMath.add(events[_eventId].ticketsSold, _quantity);
         events[_eventId].ticketsLeft = SafeMath.sub(events[_eventId].ticketsLeft, _quantity);
-        events[_eventId].eventBalance = SafeMath.add(events[_eventId].eventBalance, purchases[_purchaseId].total);
-        customerPurchases[msg.sender].push(_purchaseId);
-        emit PurchaseCompleted(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
-        return (_purchaseId);
+        events[_eventId].eventBalance = SafeMath.add(events[_eventId].eventBalance, purchases[purchaseId].total);
+        customerPurchases[msg.sender].push(purchaseId);
+        emit PurchaseCompleted(purchaseId, purchases[purchaseId].externalId, msg.sender, _eventId);
+        return (purchaseId);
     }
 
     /// @notice Cancel a purchase.
@@ -517,13 +521,13 @@ contract Bileto is Ownable, ReentrancyGuard {
             || events[_eventId].status == EventStatus.SalesSuspended
             || events[_eventId].status == EventStatus.SalesFinished
             || events[_eventId].status == EventStatus.Cancelled,
-            "event status must allow cancellation in order to proceed");
+            "ERROR-031: event status must allow cancellation in order to proceed");
         require(msg.sender == purchases[_purchaseId].customer,
-            "purchase cancellation must be initiated by purchase customer in order to proceed");
+            "ERROR-032: purchase cancellation must be initiated by purchase customer in order to proceed");
         require(keccak256(bytes(_customerId)) == purchases[_purchaseId].customerId,
-            "hashed customer ID must match with stored one in order to proceed");
+            "ERROR-033: hashed customer ID must match with stored one in order to proceed");
         require(keccak256(bytes(_externalId)) == purchases[_purchaseId].externalId,
-            "hashed purchase external ID must match with stored one in order to proceed");
+            "ERROR-034: hashed purchase external ID must match with stored one in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Cancelled;
         events[_eventId].ticketsCancelled = SafeMath.add(
             events[_eventId].ticketsCancelled,
@@ -556,7 +560,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         validPurchaseId(_purchaseId)
     {
         require(purchases[_purchaseId].status == PurchaseStatus.Cancelled,
-            "ticket purchase have to be cancelled in order to proceed");
+            "ERROR-035: ticket purchase have to be cancelled in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Refunded;
         events[_eventId].ticketsRefunded = SafeMath.add(
             events[_eventId].ticketsRefunded,
@@ -586,9 +590,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         require(events[_eventId].status == EventStatus.SalesStarted
             || events[_eventId].status == EventStatus.SalesSuspended
             || events[_eventId].status == EventStatus.SalesFinished,
-            "event ticket sales should have been started/suspended/finished in order to proceed");
+            "ERROR-036: event ticket sales should have been started/suspended/finished in order to proceed");
         require(msg.sender == purchases[_purchaseId].customer,
-            "check-in request must be initiated from customer own account in order to proceed");
+            "ERROR-037: check-in request must be initiated from customer own account in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.CheckedIn;
         emit CustomerCheckedIn(_eventId, _purchaseId, msg.sender);
     }
@@ -600,20 +604,20 @@ contract Bileto is Ownable, ReentrancyGuard {
         external
         view
         returns (
-            address _owner,
-            uint _status,
-            string memory _name,
-            uint _refundable,
-            uint _counterEvents,
-            uint _counterPurchases
+            address storeOwner,
+            uint storeStatus,
+            string memory storeName,
+            uint storeRefundableBalance,
+            uint storeCounterEvents,
+            uint storeCounterPurchases
         )
     {
-        _owner = owner();
-        _status = uint(store.status);
-        _name = store.name;
-        _refundable = store.refundable;
-        _counterEvents = store.counterEvents.current;
-        _counterPurchases = store.counterPurchases.current;
+        storeOwner = owner();
+        storeStatus = uint(store.status);
+        storeName = store.name;
+        storeRefundableBalance = store.refundable;
+        storeCounterEvents = store.counterEvents.current;
+        storeCounterPurchases = store.counterPurchases.current;
     }
 
     /// @notice Fetch event basic information.
@@ -626,22 +630,22 @@ contract Bileto is Ownable, ReentrancyGuard {
         validEventId(_eventId)
         onlyOwnerOrOrganizer(_eventId)
         returns (
-            uint _eventStatus,
-            bytes32 _externalId,
-            address _organizer,
-            string memory _name,
-            uint _storeIncentive,
-            uint _ticketPrice,
-            uint _ticketsOnSale
+            uint eventStatus,
+            bytes32 eventExternalId,
+            address eventOrganizer,
+            string memory eventName,
+            uint eventStoreIncentive,
+            uint eventTicketPrice,
+            uint eventTicketsOnSale
         )
     {
-        _eventStatus = uint(events[_eventId].status);
-        _externalId = events[_eventId].externalId;
-        _organizer = events[_eventId].organizer;
-        _name = events[_eventId].name;
-        _storeIncentive = events[_eventId].storeIncentive;
-        _ticketPrice = events[_eventId].ticketPrice;
-        _ticketsOnSale = events[_eventId].ticketsOnSale;
+        eventStatus = uint(events[_eventId].status);
+        eventExternalId = events[_eventId].externalId;
+        eventOrganizer = events[_eventId].organizer;
+        eventName = events[_eventId].name;
+        eventStoreIncentive = events[_eventId].storeIncentive;
+        eventTicketPrice = events[_eventId].ticketPrice;
+        eventTicketsOnSale = events[_eventId].ticketsOnSale;
     }
 
     /// @notice Fetch event sales information.
@@ -654,24 +658,24 @@ contract Bileto is Ownable, ReentrancyGuard {
         validEventId(_eventId)
         onlyOwnerOrOrganizer(_eventId)
         returns (
-            uint _eventStatus,
-            uint _ticketsSold,
-            uint _ticketsLeft,
-            uint _ticketsCancelled,
-            uint _ticketsRefunded,
-            uint _ticketsCheckedIn,
-            uint _eventBalance,
-            uint _refundableBalance
+            uint eventStatus,
+            uint eventTicketsSold,
+            uint eventTicketsLeft,
+            uint eventTicketsCancelled,
+            uint eventTicketsRefunded,
+            uint eventTicketsCheckedIn,
+            uint eventBalance,
+            uint eventRefundableBalance
         )
     {
-        _eventStatus = uint(events[_eventId].status);
-        _ticketsSold = events[_eventId].ticketsSold;
-        _ticketsLeft = events[_eventId].ticketsLeft;
-        _ticketsCancelled = events[_eventId].ticketsCancelled;
-        _ticketsRefunded = events[_eventId].ticketsRefunded;
-        _ticketsCheckedIn = events[_eventId].ticketsCheckedIn;
-        _eventBalance = events[_eventId].eventBalance;
-        _refundableBalance = events[_eventId].refundableBalance;
+        eventStatus = uint(events[_eventId].status);
+        eventTicketsSold = events[_eventId].ticketsSold;
+        eventTicketsLeft = events[_eventId].ticketsLeft;
+        eventTicketsCancelled = events[_eventId].ticketsCancelled;
+        eventTicketsRefunded = events[_eventId].ticketsRefunded;
+        eventTicketsCheckedIn = events[_eventId].ticketsCheckedIn;
+        eventBalance = events[_eventId].eventBalance;
+        eventRefundableBalance = events[_eventId].refundableBalance;
     }
 
     /// @notice Fetch purchase information.
@@ -682,41 +686,42 @@ contract Bileto is Ownable, ReentrancyGuard {
         view
         validPurchaseId(_purchaseId)
         returns (
-            uint _purchaseStatus,
-            bytes32 _externalId,
-            uint _timestamp,
-            address _customer,
-            bytes32 _customerId,
-            uint _quantity,
-            uint _total,
-            uint _eventId
+            uint purchaseStatus,
+            bytes32 purchaseExternalId,
+            uint purchaseTimestamp,
+            address purchaseCustomer,
+            bytes32 purchaseCustomerId,
+            uint purchaseQuantity,
+            uint purchaseTotal,
+            uint purchaseEventId
         )
     {
         require(isOwner()
             || msg.sender == purchases[_purchaseId].customer
             || msg.sender == events[purchases[_purchaseId].eventId].organizer,
-            "must be triggered by customer, event organizer or store owner in order to proceed");
-        _purchaseStatus = uint(purchases[_purchaseId].status);
-        _externalId = purchases[_purchaseId].externalId;
-        _timestamp = purchases[_purchaseId].timestamp;
-        _customer = purchases[_purchaseId].customer;
-        _customerId = purchases[_purchaseId].customerId;
-        _quantity = purchases[_purchaseId].quantity;
-        _total = purchases[_purchaseId].total;
-        _eventId = purchases[_purchaseId].eventId;
+            "ERROR-038: must be triggered by customer, event organizer or store owner in order to proceed");
+        purchaseStatus = uint(purchases[_purchaseId].status);
+        purchaseExternalId = purchases[_purchaseId].externalId;
+        purchaseTimestamp = purchases[_purchaseId].timestamp;
+        purchaseCustomer = purchases[_purchaseId].customer;
+        purchaseCustomerId = purchases[_purchaseId].customerId;
+        purchaseQuantity = purchases[_purchaseId].quantity;
+        purchaseTotal = purchases[_purchaseId].total;
+        purchaseEventId = purchases[_purchaseId].eventId;
     }
 
     /// @notice Get number of events created by an organizer.
     /// @param _organizer organizer address
-    /// @return Number of events. Zero in case organizer hasn't yet created any events.
+    /// @return Count of events. Zero in case organizer hasn't yet created any events.
     function getCountOrganizerEvents(address _organizer) 
         external
         view
-        returns (uint)
+        returns (uint countEvents)
     {
         require(msg.sender == owner() || msg.sender == _organizer,
-            "not allowed to retrieve such information");
-        return organizerEvents[_organizer].length;
+            "ERROR-039: not allowed to retrieve such information");
+        countEvents = organizerEvents[_organizer].length;
+        return countEvents;
     }
 
     /// @notice Get ID of an event, according to its position on list of events created by an organizer.
@@ -726,26 +731,28 @@ contract Bileto is Ownable, ReentrancyGuard {
     function getEventIdByIndex(address _organizer, uint _index)
         external
         view
-        returns (uint)
+        returns (uint eventId)
     {
         require(organizerEvents[_organizer].length != 0,
-            "organizer has not created events yet");
+            "ERROR-040: organizer has not created events yet");
         require(_index < organizerEvents[_organizer].length,
-            "invalid index");
-        return organizerEvents[_organizer][_index];
+            "ERROR-041: invalid index");
+        eventId = organizerEvents[_organizer][_index];
+        return eventId;
     }
 
     /// @notice Get number of ticket purchases performed by a customer.
     /// @param _customer customer address
-    /// @return Number of purchases. Zero in case customer hasn't yet purchased any tickets.
+    /// @return Count of purchases. Zero in case customer hasn't yet purchased any tickets.
     function getCountCustomerPurchases(address _customer) 
         external
         view
-        returns (uint)
+        returns (uint countPurchases)
     {
         require(msg.sender == owner() || msg.sender == _customer,
-            "not allowed to retrieve such information");
-        return customerPurchases[_customer].length;
+            "ERROR-042: not allowed to retrieve such information");
+        countPurchases = customerPurchases[_customer].length;
+        return countPurchases;
     }
 
     /// @notice Get ID of a purchase, according to its position on list of purchases performed by a customer.
@@ -755,13 +762,36 @@ contract Bileto is Ownable, ReentrancyGuard {
     function getPurchaseIdByIndex(address _customer, uint _index)
         external
         view
-        returns (uint)
+        returns (uint purchaseId)
     {
         require(customerPurchases[_customer].length != 0,
-            "customer has not purchased tickets yet");
+            "ERROR-043: customer has not purchased tickets yet");
         require(_index < customerPurchases[_customer].length,
-            "invalid index");
-        return customerPurchases[_customer][_index];
+            "ERROR-044: invalid index");
+        purchaseId = customerPurchases[_customer][_index];
+        return purchaseId;
+    }
+
+    /// @notice Get number of organizers who dealt with the store.
+    /// @return Count of organizers. Zero in case of none yet.
+    function getCountOrganizers() 
+        external
+        view
+        returns (uint countOrganizers)
+    {
+        countOrganizers = organizers.length;
+        return countOrganizers;
+    }
+
+    /// @notice Get number of customers who purchased tickets from the store.
+    /// @return Count of customers. Zero in case of none yet.
+    function getCountCustomers() 
+        external
+        view
+        returns (uint countCustomers)
+    {
+        countCustomers = customers.length;
+        return countCustomers;
     }
 
 }
