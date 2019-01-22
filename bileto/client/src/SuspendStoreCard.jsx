@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { ContractForm } from "drizzle-react-components";
-import "bootstrap/dist/css/bootstrap.css";
 
 class SuspendStoreCard extends Component {
   render() {

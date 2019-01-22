@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { ContractData } from "drizzle-react-components";
-import "bootstrap/dist/css/bootstrap.css";
 
 class StoreCard extends Component {
   render() {

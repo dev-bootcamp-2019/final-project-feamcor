@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import "bootstrap/dist/css/bootstrap.css";
+
 import AppNavBar from "./AppNavBar";
 import StoreCard from "./StoreCard";
 import OpenStoreCard from "./OpenStoreCard";

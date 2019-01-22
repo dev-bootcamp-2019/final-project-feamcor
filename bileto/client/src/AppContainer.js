@@ -1,5 +1,5 @@
-import AppComponent from "./AppComponent";
 import { drizzleConnect } from "drizzle-react";
+import AppComponent from "./AppComponent";
 
 const mapStateToProps = state => {
   return {

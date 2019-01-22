@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "bootstrap/dist/css/bootstrap.css";
 import logo from "./tickets.png";
 
 class AppNavBar extends Component {
