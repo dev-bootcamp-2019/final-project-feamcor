@@ -40,7 +40,9 @@ contract Bileto is Ownable, ReentrancyGuard {
     struct Store {
         StoreStatus status;
         string name;
-        uint refundable;
+        uint settledBalance;
+        uint excessBalance;
+        uint refundableBalance;
         Counter.Counter_ counterEvents;
         Counter.Counter_ counterPurchases;
     }
@@ -99,8 +101,10 @@ contract Bileto is Ownable, ReentrancyGuard {
 
     /// @notice Ticket store was closed.
     /// @param _by store owner address (indexed)
+    /// @param _settlement amount settled (transferred) to store owner
+    /// @param _excess amount transferred to store owner due to excess funds (fallback)
     /// @dev corresponds to `StoreStatus.Closed`
-    event StoreClosed(address indexed _by);
+    event StoreClosed(address indexed _by, uint _settlement, uint _excess);
 
     /// @notice Ticket event was created.
     /// @param _id event new internal ID (indexed) 
@@ -235,12 +239,14 @@ contract Bileto is Ownable, ReentrancyGuard {
     }
 
     /// @notice Fallback function.
+    /// @notice Funds will be locked until store is closed, when owner will be able to withdraw them.
     function()
         external
         payable
     {
         require(msg.data.length == 0,
             "ERROR-008: only funds transfer (i.e. no data) accepted on fallback");
+        store.excessBalance = store.excessBalance.add(msg.value);
     }
 
     /// @notice Open ticket store.
@@ -273,6 +279,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     /// @notice Close ticket store.
     /// @notice This is ticket store final state and become inoperable after.
     /// @notice Ticket store won't close while there are refundable balance left.
+    /// @notice Only settled and excess balance will be transferred to store owner.
     /// @dev emit `StoreClosed` event
     function closeStore()
         external
@@ -281,10 +288,14 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(store.status != StoreStatus.Closed,
             "ERROR-010: ticket store cannot be closed in order to proceed");
-        require(store.refundable == 0,
-            "ERROR-011: ticket store refundable balance must be zero in order to proceed");
+        // require(store.refundableBalance == 0,
+        //     "ERROR-011: ticket store refundable balance must be zero in order to proceed");
         store.status = StoreStatus.Closed;
-        emit StoreClosed(msg.sender);
+        uint _total = store.settledBalance.add(store.excessBalance);
+        if (_total > 0) {
+            owner().transfer(_total);
+        }
+        emit StoreClosed(msg.sender, store.settledBalance, store.excessBalance);
     }
 
     /// @notice Create a ticket event.
@@ -423,8 +434,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].status = EventStatus.Settled;
         uint _eventBalance = events[_eventId].eventBalance;
         uint _storeIncentive = events[_eventId].storeIncentive;
-        uint _storeBalance = _eventBalance.mul(_storeIncentive).div(10000);
-        uint _settlement = _eventBalance.sub(_storeBalance);
+        uint _storeIncentiveBalance = _eventBalance.mul(_storeIncentive).div(10000);
+        uint _settlement = _eventBalance.sub(_storeIncentiveBalance);
+        store.settledBalance = store.settledBalance.add(_storeIncentiveBalance);
         if (_settlement > 0) {
             events[_eventId].organizer.transfer(_settlement);
         }
@@ -520,7 +532,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     )
         external
         nonReentrant
-        storeOpen
+        // storeOpen
         validPurchaseId(_purchaseId)
         purchaseCompleted(_purchaseId)
     {
@@ -541,7 +553,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         events[_eventId].ticketsLeft = events[_eventId].ticketsLeft.add(purchases[_purchaseId].quantity);
         events[_eventId].eventBalance = events[_eventId].eventBalance.sub(purchases[_purchaseId].total);
         events[_eventId].refundableBalance = events[_eventId].refundableBalance.add(purchases[_purchaseId].total);
-        store.refundable = store.refundable.add(purchases[_purchaseId].total);
+        store.refundableBalance = store.refundableBalance.add(purchases[_purchaseId].total);
         emit PurchaseCancelled(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
 
@@ -552,7 +564,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     function refundPurchase(uint _eventId, uint _purchaseId)
         external
         nonReentrant
-        storeOpen
+        // storeOpen
         validEventId(_eventId)
         onlyOrganizer(_eventId)
         validPurchaseId(_purchaseId)
@@ -562,7 +574,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         purchases[_purchaseId].status = PurchaseStatus.Refunded;
         events[_eventId].ticketsRefunded = events[_eventId].ticketsRefunded.add(purchases[_purchaseId].quantity);
         events[_eventId].refundableBalance = events[_eventId].refundableBalance.sub(purchases[_purchaseId].total);
-        store.refundable = store.refundable.sub(purchases[_purchaseId].total);
+        store.refundableBalance = store.refundableBalance.sub(purchases[_purchaseId].total);
         purchases[_purchaseId].customer.transfer(purchases[_purchaseId].total);
         emit PurchaseRefunded(_purchaseId, purchases[_purchaseId].externalId, msg.sender, _eventId);
     }
@@ -599,6 +611,8 @@ contract Bileto is Ownable, ReentrancyGuard {
             address storeOwner,
             uint storeStatus,
             string memory storeName,
+            uint storeSettledBalance,
+            uint storeExcessBalance,
             uint storeRefundableBalance,
             uint storeCounterEvents,
             uint storeCounterPurchases
@@ -607,7 +621,9 @@ contract Bileto is Ownable, ReentrancyGuard {
         storeOwner = owner();
         storeStatus = uint(store.status);
         storeName = store.name;
-        storeRefundableBalance = store.refundable;
+        storeSettledBalance = store.settledBalance;
+        storeExcessBalance = store.excessBalance;
+        storeRefundableBalance = store.refundableBalance;
         storeCounterEvents = store.counterEvents.current;
         storeCounterPurchases = store.counterPurchases.current;
     }
