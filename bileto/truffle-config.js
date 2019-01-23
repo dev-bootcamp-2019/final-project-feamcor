@@ -50,9 +50,20 @@ module.exports = {
     // options below to some value.
     //
     development: {
-      host: "127.0.0.1", // Localhost
+      host: "127.0.0.1",
       port: 8545, // Ganache CLI
-      // port: 7545,            // Ganache GUI
+      network_id: "*" // Any network (default: none)
+    },
+
+    ganachecli: {
+      host: "127.0.0.1",
+      port: 8545, // Ganache CLI
+      network_id: "*" // Any network (default: none)
+    },
+
+    ganachegui: {
+      host: "127.0.0.1",
+      port: 7545, // Ganache GUI
       network_id: "*" // Any network (default: none)
     },
 
@@ -78,12 +89,13 @@ module.exports = {
     // },
 
     rinkeby: {
-      provider: new HDWallet(
-        metamaskSeedPhrase,
-        `https://rinkeby.infura.io/v3/${infuraProjectId}`,
-        rinkebyAddressIndex,
-        rinkebyNumAddresses
-      ),
+      provider: () =>
+        new HDWallet(
+          metamaskSeedPhrase,
+          `https://rinkeby.infura.io/v3/${infuraProjectId}`,
+          rinkebyAddressIndex,
+          rinkebyNumAddresses
+        ),
       network_id: 4,
       skipDryRun: true
     }
@@ -97,14 +109,14 @@ module.exports = {
   },
 
   // Set default mocha options here, use special reporters etc.
-  mocha: {
-    // timeout: 100000
-  },
+  // mocha: {
+  // timeout: 100000
+  // },
 
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.5.2", // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.5.3", // Fetch exact version from solc-bin (default: truffle's version)
       // version: "native",
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       settings: {

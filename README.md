@@ -21,7 +21,7 @@
 
 **Bileto** is a standalone smart contract which implements the business of a simple online ticket store.
 
-It is written in [Solidity](https://solidity.readthedocs.io/en/v0.5.2/index.html) and compiled using `solc` version [0.5.2](https://github.com/ethereum/solidity/releases/tag/v0.5.2).
+It is written in [Solidity](https://solidity.readthedocs.io/en/v0.5.3/index.html) and compiled using `solc` version [0.5.3](https://github.com/ethereum/solidity/releases/tag/v0.5.3).
 
 It can be deployed to an [Ethereum](https://ethereum.org) blockchain, be it the public [mainnet](https://etherscan.io), a public testnet like [Rinkeby](https://rinkeby.etherscan.io), a private blockchain, or on a local development blockchain like [Ganache](https://truffleframework.com/ganache).
 
