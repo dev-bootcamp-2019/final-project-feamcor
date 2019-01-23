@@ -12,6 +12,7 @@ import "./ReentrancyGuard.sol";
 /// @notice Final project for ConsenSys Academy's Developer Bootcamp 2019.
 contract Bileto is Ownable, ReentrancyGuard {
     using SafeMath for uint;
+    using Counter_ for Counter_.Counter;
 
     enum StoreStatus {
         Created,   // 0
@@ -43,8 +44,8 @@ contract Bileto is Ownable, ReentrancyGuard {
         uint settledBalance;
         uint excessBalance;
         uint refundableBalance;
-        Counter.Counter_ counterEvents;
-        Counter.Counter_ counterPurchases;
+        Counter_.Counter counterEvents;
+        Counter_.Counter counterPurchases;
     }
 
     struct Event {
@@ -332,7 +333,7 @@ contract Bileto is Ownable, ReentrancyGuard {
             "ERROR-015: store incentive must be between 0.00% (000) to 100.00% (10000) in order to proceed");
         require(_ticketsOnSale > 0,
             "ERROR-016: number of tickets available for sale cannot be zero in order to proceed");
-        eventId = Counter.next(store.counterEvents);
+        eventId = store.counterEvents.next();
         events[eventId].status = EventStatus.Created;
         events[eventId].externalId = keccak256(bytes(_externalId));
         events[eventId].organizer = _organizer;
@@ -501,7 +502,7 @@ contract Bileto is Ownable, ReentrancyGuard {
             "ERROR-029: customer ID cannot be empty in order to proceed");
         require(msg.value == _quantity.mul(events[_eventId].ticketPrice),
             "ERROR-030: customer funds sent on transaction must be equal to purchase total in order to proceed");
-        purchaseId = Counter.next(store.counterPurchases);
+        purchaseId = store.counterPurchases.next();
         purchases[purchaseId].status = PurchaseStatus.Completed;
         purchases[purchaseId].eventId = _eventId;
         purchases[purchaseId].quantity = _quantity;
