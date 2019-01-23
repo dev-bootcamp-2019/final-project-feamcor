@@ -78,13 +78,12 @@ module.exports = {
     // },
 
     rinkeby: {
-      provider: () =>
-        new HDWallet(
-          metamaskSeedPhrase,
-          `https://rinkeby.infura.io/v3/${infuraProjectId}`,
-          rinkebyAddressIndex,
-          rinkebyNumAddresses
-        ),
+      provider: new HDWallet(
+        metamaskSeedPhrase,
+        `https://rinkeby.infura.io/v3/${infuraProjectId}`,
+        rinkebyAddressIndex,
+        rinkebyNumAddresses
+      ),
       network_id: 4,
       skipDryRun: true
     }
