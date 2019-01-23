@@ -455,8 +455,10 @@ contract Bileto is Ownable, ReentrancyGuard {
         onlyOrganizer(_eventId)
     {
         require(events[_eventId].status == EventStatus.Created
+            || events[_eventId].status == EventStatus.SalesStarted
+            || events[_eventId].status == EventStatus.SalesSuspended
             || events[_eventId].status == EventStatus.SalesFinished,
-            "ERROR-022: event must have just be created or have its ticket sales suspended in order to proceed");
+            "ERROR-022: event must be created or have its ticket sales not completed in order to proceed");
         events[_eventId].status = EventStatus.Cancelled;
         emit EventCancelled(_eventId, events[_eventId].externalId, msg.sender);
     }
@@ -532,15 +534,15 @@ contract Bileto is Ownable, ReentrancyGuard {
     )
         external
         nonReentrant
-        // storeOpen
         validPurchaseId(_purchaseId)
         purchaseCompleted(_purchaseId)
     {
         uint _eventId = purchases[_purchaseId].eventId;
-        require(events[_eventId].status == EventStatus.SalesStarted
-            || events[_eventId].status == EventStatus.SalesSuspended
-            || events[_eventId].status == EventStatus.SalesFinished
-            || events[_eventId].status == EventStatus.Cancelled,
+        require((store.status == StoreStatus.Open || store.status == StoreStatus.Closed)
+            && (events[_eventId].status == EventStatus.SalesStarted
+                || events[_eventId].status == EventStatus.SalesSuspended
+                || events[_eventId].status == EventStatus.SalesFinished
+                || events[_eventId].status == EventStatus.Cancelled),
             "ERROR-031: event status must allow cancellation in order to proceed");
         require(msg.sender == purchases[_purchaseId].customer,
             "ERROR-032: purchase cancellation must be initiated by purchase customer in order to proceed");
@@ -564,12 +566,12 @@ contract Bileto is Ownable, ReentrancyGuard {
     function refundPurchase(uint _eventId, uint _purchaseId)
         external
         nonReentrant
-        // storeOpen
         validEventId(_eventId)
         onlyOrganizer(_eventId)
         validPurchaseId(_purchaseId)
     {
-        require(purchases[_purchaseId].status == PurchaseStatus.Cancelled,
+        require((store.status == StoreStatus.Open || store.status == StoreStatus.Closed)
+            && purchases[_purchaseId].status == PurchaseStatus.Cancelled,
             "ERROR-035: ticket purchase have to be cancelled in order to proceed");
         purchases[_purchaseId].status = PurchaseStatus.Refunded;
         events[_eventId].ticketsRefunded = events[_eventId].ticketsRefunded.add(purchases[_purchaseId].quantity);
