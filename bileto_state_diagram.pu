@@ -1,7 +1,7 @@
 @startuml bileto_state_diagram
 skinparam Monochrome true
 left header Consensys Academy Developer Bootcamp 2019 - Final Project\n
-right footer \n2018-12-21 by Fábio Corrêa <feamcor@gmail.com>
+right footer \n2019-01-22 by Fábio Corrêa <feamcor@gmail.com>
 
 title Bileto smart contract - State Diagram\n
 
