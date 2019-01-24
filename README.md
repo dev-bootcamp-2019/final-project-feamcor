@@ -1,5 +1,7 @@
 # Bileto
 
+[![Build Status](https://travis-ci.org/dev-bootcamp-2019/final-project-feamcor.svg?branch=master)](https://travis-ci.org/dev-bootcamp-2019/final-project-feamcor)
+
 [Bileto](https://en.wiktionary.org/wiki/bileto) is a simple decentralized online ticket store on Ethereum.
 
 - [Bileto](#bileto)
