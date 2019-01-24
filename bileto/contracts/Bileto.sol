@@ -13,6 +13,8 @@ import "./ReentrancyGuard.sol";
 contract Bileto is Ownable, ReentrancyGuard {
     using SafeMath for uint;
     using Counter_ for Counter_.Counter;
+    using Address for address;
+    using Address for address payable;
 
     enum StoreStatus {
         Created,   // 0
@@ -322,7 +324,7 @@ contract Bileto is Ownable, ReentrancyGuard {
         storeOpen
         returns (uint eventId)
     {
-        require(!Address.isContract(_organizer),
+        require(!_organizer.isContract(),
             "ERROR-012: organizer address must refer to an account (i.e. not a contract) in order to proceed");
         require(bytes(_externalId).length != 0,
             "ERROR-013: ticket event external ID must not be empty in order to proceed");
@@ -488,7 +490,7 @@ contract Bileto is Ownable, ReentrancyGuard {
     {
         require(events[_eventId].status == EventStatus.SalesStarted,
             "ERROR-023: event ticket sales have to had started in order to proceed");
-        require(!Address.isContract(msg.sender),
+        require(!msg.sender.isContract(),
             "ERROR-024: customer address must refer to an account (i.e. not a contract) in order to proceed");
         require(_quantity > 0,
             "ERROR-025: quantity of tickets must be greater than zero in order to proceed");
