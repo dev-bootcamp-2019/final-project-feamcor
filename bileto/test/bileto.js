@@ -21,41 +21,35 @@ contract("Bileto", async accounts => {
     let _counter = 0;
     for (let _account of accounts) {
       const _balance = await web3.eth.getBalance(_account);
-      console.log(
-        "account[" +
-          _counter +
-          "]:\t" +
-          _account +
-          " = " +
-          web3.utils.fromWei(_balance, "ether")
-      );
+      const _balanceETH = web3.utils.fromWei(_balance, "ether");
+      console.log(`account[${_counter}]:\t${_account} = ${_balanceETH}`);
       _counter += 1;
       if (_counter == 3) break;
     }
-    console.log("store address:\t" + __address);
-    console.log("store owner:\t" + __owner);
+    console.log(`store address:\t${__address}`);
+    console.log(`store owner:\t${__owner}`);
   });
 
   beforeEach(async () => {
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info.storeStatus;
+    __status = _info.storeStatus.toString();
     __balance = await web3.eth.getBalance(__address);
     __name = _info.storeName;
-    __refundable = _info.storeRefundableBalance;
-    __lastEvent = _info.storeCounterEvents;
-    __lastPurchase = _info.storeCounterPurchases;
+    __refundable = _info.storeRefundableBalance.toString();
+    __lastEvent = _info.storeCounterEvents.toString();
+    __lastPurchase = _info.storeCounterPurchases.toString();
   });
 
   it("should create store", async () => {
     assert.strictEqual(
-      __status.toNumber(),
-      0,
+      __status,
+      "0",
       "store status is not StoreStatus.Created (0)"
     );
     assert.strictEqual(__balance, "0", "store balance is not zero");
     assert.strictEqual(
-      __refundable.toNumber(),
-      0,
+      __refundable,
+      "0",
       "store refundable balance is not zero"
     );
   });
@@ -71,10 +65,10 @@ contract("Bileto", async accounts => {
   it("should open store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info.storeStatus;
+    __status = _info.storeStatus.toString();
     assert.strictEqual(
-      __status.toNumber(),
-      1,
+      __status,
+      "1",
       "store status is not StoreStatus.Open (1)"
     );
     truffleAssert.eventEmitted(_result, "StoreOpen");
@@ -91,10 +85,10 @@ contract("Bileto", async accounts => {
   it("should suspend store", async () => {
     const _result = await __contract.suspendStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info.storeStatus;
+    __status = _info.storeStatus.toString();
     assert.strictEqual(
-      __status.toNumber(),
-      2,
+      __status,
+      "2",
       "store status is not StoreStatus.Open (2)"
     );
     truffleAssert.eventEmitted(_result, "StoreSuspended");
@@ -103,10 +97,10 @@ contract("Bileto", async accounts => {
   it("should re-open store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info.storeStatus;
+    __status = _info.storeStatus.toString();
     assert.strictEqual(
-      __status.toNumber(),
-      1,
+      __status,
+      "1",
       "store status is not StoreStatus.Open (1)"
     );
     truffleAssert.eventEmitted(_result, "StoreOpen");
@@ -206,8 +200,8 @@ contract("Bileto", async accounts => {
     const _eventId = _info.storeCounterEvents;
     _info = await __contract.fetchEventInfo.call(_eventId);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      0,
+      _info.eventStatus.toString(),
+      "0",
       "event status is not EventStatus.Created (0)"
     );
     truffleAssert.eventEmitted(_result, "EventCreated");
@@ -217,8 +211,8 @@ contract("Bileto", async accounts => {
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     const _hash = web3.utils.keccak256("BILETO-EVENT-1");
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      0,
+      _info.eventStatus.toString(),
+      "0",
       "event status is not EventStatus.Created (0)"
     );
     assert.strictEqual(
@@ -315,8 +309,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      1,
+      _info.eventStatus.toString(),
+      "1",
       "event status is not EventStatus.SalesStarted (1)"
     );
     truffleAssert.eventEmitted(_result, "EventSalesStarted");
@@ -450,8 +444,8 @@ contract("Bileto", async accounts => {
     const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info.purchaseStatus.toNumber(),
-      0,
+      _info.purchaseStatus.toString(),
+      "0",
       "purchase status is not PurchaseStatus.Completed (0)"
     );
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
@@ -527,8 +521,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      2,
+      _info.eventStatus.toString(),
+      "2",
       "event status is not EventStatus.SalesSuspended (2)"
     );
     truffleAssert.eventEmitted(_result, "EventSalesSuspended");
@@ -544,8 +538,8 @@ contract("Bileto", async accounts => {
     );
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     assert.strictEqual(
-      _info.purchaseStatus.toNumber(),
-      2,
+      _info.purchaseStatus.toString(),
+      "2",
       "purchase status is not PurchaseStatus.Refunded (2)"
     );
     truffleAssert.eventEmitted(_result, "PurchaseRefunded");
@@ -557,8 +551,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      1,
+      _info.eventStatus.toString(),
+      "1",
       "event status is not EventStatus.SalesStarted (1)"
     );
     truffleAssert.eventEmitted(_result, "EventSalesStarted");
@@ -580,8 +574,8 @@ contract("Bileto", async accounts => {
     const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info.purchaseStatus.toNumber(),
-      0,
+      _info.purchaseStatus.toString(),
+      "0",
       "purchase status is not PurchaseStatus.Completed (0)"
     );
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
@@ -603,8 +597,8 @@ contract("Bileto", async accounts => {
     const _purchaseId = _info.storeCounterPurchases;
     _info = await __contract.fetchPurchaseInfo.call(_purchaseId);
     assert.strictEqual(
-      _info.purchaseStatus.toNumber(),
-      0,
+      _info.purchaseStatus.toString(),
+      "0",
       "purchase status is not PurchaseStatus.Completed (0)"
     );
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
@@ -616,8 +610,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      3,
+      _info.eventStatus.toString(),
+      "3",
       "event status is not EventStatus.SalesFinished (3)"
     );
     truffleAssert.eventEmitted(_result, "EventSalesFinished");
@@ -645,8 +639,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     assert.strictEqual(
-      _info.purchaseStatus.toNumber(),
-      3,
+      _info.purchaseStatus.toString(),
+      "3",
       "purchase status is not PurchaseStatus.CheckedIn (3)"
     );
     truffleAssert.eventEmitted(_result, "CustomerCheckedIn");
@@ -658,8 +652,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      4,
+      _info.eventStatus.toString(),
+      "4",
       "event status is not EventStatus.Completed (4)"
     );
     truffleAssert.eventEmitted(_result, "EventCompleted");
@@ -669,8 +663,8 @@ contract("Bileto", async accounts => {
     const _result = await __contract.settleEvent(__lastEvent);
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      5,
+      _info.eventStatus.toString(),
+      "5",
       "event status is not EventStatus.Settled (5)"
     );
     truffleAssert.eventEmitted(_result, "EventSettled");
@@ -682,8 +676,8 @@ contract("Bileto", async accounts => {
     });
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
-      _info.eventStatus.toNumber(),
-      6,
+      _info.eventStatus.toString(),
+      "6",
       "event status is not EventStatus.Cancelled (6)"
     );
     truffleAssert.eventEmitted(_result, "EventCancelled");
@@ -700,10 +694,10 @@ contract("Bileto", async accounts => {
   it("should close store", async () => {
     const _result = await __contract.closeStore();
     const _info = await __contract.fetchStoreInfo.call();
-    __status = _info.storeStatus;
+    __status = _info.storeStatus.toString();
     assert.strictEqual(
-      __status.toNumber(),
-      3,
+      __status,
+      "3",
       "store status is not StoreStatus.Open (2)"
     );
     truffleAssert.eventEmitted(_result, "StoreClosed");
