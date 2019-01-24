@@ -40,7 +40,7 @@ contract("Bileto", async accounts => {
     __lastPurchase = _info.storeCounterPurchases.toString();
   });
 
-  it("should create store", async () => {
+  it("owner should create store", async () => {
     assert.strictEqual(
       __status,
       "0",
@@ -54,7 +54,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not open store for non-owner", async () => {
+  it("non-owner should not open store", async () => {
     await truffleAssert.reverts(
       __contract.openStore({
         from: __organizer1
@@ -62,7 +62,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should open store", async () => {
+  it("owner should open store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
     __status = _info.storeStatus.toString();
@@ -74,7 +74,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "StoreOpen");
   });
 
-  it("should not suspend store for non-owner", async () => {
+  it("non-owner should not suspend opened store", async () => {
     await truffleAssert.reverts(
       __contract.suspendStore({
         from: __organizer1
@@ -82,7 +82,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should suspend store", async () => {
+  it("owner should suspend opened store", async () => {
     const _result = await __contract.suspendStore();
     const _info = await __contract.fetchStoreInfo.call();
     __status = _info.storeStatus.toString();
@@ -94,7 +94,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "StoreSuspended");
   });
 
-  it("should re-open store", async () => {
+  it("owner should re-open suspended store", async () => {
     const _result = await __contract.openStore();
     const _info = await __contract.fetchStoreInfo.call();
     __status = _info.storeStatus.toString();
@@ -106,7 +106,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "StoreOpen");
   });
 
-  it("should not create an event for non-owner", async () => {
+  it("non-owner should not create an event", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
@@ -122,7 +122,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not create an event when organizer is a contract", async () => {
+  it("owner should not create an event when organizer is a contract", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
@@ -135,7 +135,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not create an event without external ID", async () => {
+  it("owner should not create an event without external ID", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "",
@@ -148,7 +148,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not create an event without name", async () => {
+  it("owner should not create an event without name", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
@@ -161,7 +161,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not create an event with incentive greater than 100%", async () => {
+  it("owner should not create an event with incentive greater than 100%", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
@@ -174,7 +174,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not create an event with no tickets available for sale", async () => {
+  it("owner should not create an event with no tickets available for sale", async () => {
     await truffleAssert.reverts(
       __contract.createEvent(
         "BILETO-EVENT-1",
@@ -187,7 +187,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should create an event", async () => {
+  it("owner should create an event", async () => {
     const _result = await __contract.createEvent(
       "BILETO-EVENT-1",
       __organizer1,
@@ -207,7 +207,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventCreated");
   });
 
-  it("should store event basic info accordingly", async () => {
+  it("contract should store event basic info accordingly", async () => {
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     const _hash = web3.utils.keccak256("BILETO-EVENT-1");
     assert.strictEqual(
@@ -247,7 +247,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should init event sales info accordingly", async () => {
+  it("contract should init event sales info accordingly", async () => {
     const _basic = await __contract.fetchEventInfo.call(__lastEvent);
     const _info = await __contract.fetchEventSalesInfo.call(__lastEvent);
     assert.strictEqual(
@@ -287,7 +287,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase sales not started yet", async () => {
+  it("customer should not complete purchase when sales not started yet", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -303,7 +303,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should start ticket sales of an event", async () => {
+  it("organizer should start ticket sales of event", async () => {
     const _result = await __contract.startTicketSales(__lastEvent, {
       from: __organizer1
     });
@@ -316,7 +316,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventSalesStarted");
   });
 
-  it("should not complete purchase when quantity is zero", async () => {
+  it("customer should not complete purchase when quantity is zero", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -332,7 +332,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase when there are not enough tickets", async () => {
+  it("customer should not complete purchase when there are not enough tickets", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -348,7 +348,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase without external ID", async () => {
+  it("customer should not complete purchase without external ID", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -364,7 +364,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase without timestamp", async () => {
+  it("customer should not complete purchase without timestamp", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -380,7 +380,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase without customer ID", async () => {
+  it("customer should not complete purchase without customer ID", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -396,7 +396,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase value less than total", async () => {
+  it("customer should not complete purchase when value less than total", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -412,7 +412,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not complete purchase value more than total", async () => {
+  it("customer should not complete purchase when value more than total", async () => {
     await truffleAssert.reverts(
       __contract.purchaseTickets(
         __lastEvent,
@@ -428,7 +428,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should complete 1st purchase", async () => {
+  it("customer should complete 1st purchase", async () => {
     const _result = await __contract.purchaseTickets(
       __lastEvent,
       1,
@@ -451,7 +451,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
   });
 
-  it("should store purchase info accordingly", async () => {
+  it("contract should store purchase info accordingly", async () => {
     const _info = await __contract.fetchPurchaseInfo.call(__lastPurchase);
     const _hash1 = web3.utils.keccak256("BILETO-EVENT-1-PURCHASE-1");
     const _hash2 = web3.utils.keccak256("BILETO-CUSTOMER-1");
@@ -497,7 +497,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should cancel a purchase", async () => {
+  it("customer should cancel a purchase", async () => {
     const _result = await __contract.cancelPurchase(
       __lastPurchase,
       "BILETO-EVENT-1-PURCHASE-1",
@@ -515,7 +515,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "PurchaseCancelled");
   });
 
-  it("should suspend ticket sales of an event", async () => {
+  it("organizer should suspend ticket sales of an event", async () => {
     const _result = await __contract.suspendTicketSales(__lastEvent, {
       from: __organizer1
     });
@@ -528,7 +528,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventSalesSuspended");
   });
 
-  it("should refund a cancelled purchase", async () => {
+  it("organizer should refund a cancelled purchase", async () => {
     const _result = await __contract.refundPurchase(
       __lastEvent,
       __lastPurchase,
@@ -545,7 +545,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "PurchaseRefunded");
   });
 
-  it("should start ticket sales of a suspended event", async () => {
+  it("organizer should resume ticket sales of a suspended event", async () => {
     const _result = await __contract.startTicketSales(__lastEvent, {
       from: __organizer1
     });
@@ -558,7 +558,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventSalesStarted");
   });
 
-  it("should complete 2nd purchase", async () => {
+  it("customer should complete 2nd purchase", async () => {
     const _result = await __contract.purchaseTickets(
       __lastEvent,
       3,
@@ -581,7 +581,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
   });
 
-  it("should complete 3rd purchase", async () => {
+  it("customer should complete 3rd purchase", async () => {
     const _result = await __contract.purchaseTickets(
       __lastEvent,
       2,
@@ -604,7 +604,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "PurchaseCompleted");
   });
 
-  it("should end ticket sales of an event", async () => {
+  it("organizer should end ticket sales of an event", async () => {
     const _result = await __contract.endTicketSales(__lastEvent, {
       from: __organizer1
     });
@@ -617,7 +617,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventSalesFinished");
   });
 
-  it("should not check-in invalid customer", async () => {
+  it("contract should not check-in invalid customer", async () => {
     await truffleAssert.reverts(
       __contract.checkIn(__lastPurchase, {
         from: __organizer1
@@ -625,7 +625,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should not check-in invalid purchase", async () => {
+  it("contract should not check-in invalid purchase", async () => {
     await truffleAssert.reverts(
       __contract.checkIn(100, {
         from: __customer1
@@ -633,7 +633,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should check-in customer", async () => {
+  it("contract should check-in customer", async () => {
     const _result = await __contract.checkIn(__lastPurchase, {
       from: __customer1
     });
@@ -646,7 +646,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "CustomerCheckedIn");
   });
 
-  it("should complete an event", async () => {
+  it("organizer should complete an event", async () => {
     const _result = await __contract.completeEvent(__lastEvent, {
       from: __organizer1
     });
@@ -659,7 +659,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventCompleted");
   });
 
-  it("should settle an event", async () => {
+  it("owner should settle an event", async () => {
     const _result = await __contract.settleEvent(__lastEvent);
     const _info = await __contract.fetchEventInfo.call(__lastEvent);
     assert.strictEqual(
@@ -670,7 +670,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventSettled");
   });
 
-  it("should cancel an event", async () => {
+  it("organizer should cancel an event", async () => {
     const _result = await __contract.cancelEvent(__lastEvent, {
       from: __organizer1
     });
@@ -683,7 +683,7 @@ contract("Bileto", async accounts => {
     truffleAssert.eventEmitted(_result, "EventCancelled");
   });
 
-  it("should not close store for non-owner", async () => {
+  it("non-owner should not close store", async () => {
     await truffleAssert.reverts(
       __contract.closeStore({
         from: __organizer1
@@ -691,7 +691,7 @@ contract("Bileto", async accounts => {
     );
   });
 
-  it("should close store", async () => {
+  it("owner should close store", async () => {
     const _result = await __contract.closeStore();
     const _info = await __contract.fetchStoreInfo.call();
     __status = _info.storeStatus.toString();
