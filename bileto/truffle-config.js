@@ -26,7 +26,7 @@ require("dotenv").config();
 
 const HDWallet = require("truffle-hdwallet-provider");
 const infuraProjectId = process.env.INFURA_PROJECT_ID;
-const metamaskSeedPhrase = process.env.METAMASK_SEED_PHRASE;
+const walletSeedPhrase = process.env.WALLET_SEED_PHRASE;
 const rinkebyAddressIndex = process.env.RINKEBY_ADDRESS_INDEX;
 const rinkebyNumAddresses = process.env.RINKEBY_NUM_ADDRESSES;
 
@@ -91,7 +91,7 @@ module.exports = {
     rinkeby: {
       provider: () =>
         new HDWallet(
-          metamaskSeedPhrase,
+          walletSeedPhrase,
           `https://rinkeby.infura.io/v3/${infuraProjectId}`,
           rinkebyAddressIndex,
           rinkebyNumAddresses
