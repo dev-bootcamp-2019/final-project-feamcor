@@ -835,4 +835,17 @@ contract Bileto is Ownable, ReentrancyGuard {
         return customer;
     }
 
+    /// @notice Get role of an account in relation to the store.
+    /// @param _account address of the account to be checked
+    /// @return True or False for each of the possible roles
+    function getAccountRole(address _account)
+        external
+        view
+        returns (bool accountIsOwner, bool accountIsOrganizer, bool accountIsCustomer)
+    {
+        accountIsOwner = _account == owner();
+        accountIsOrganizer = organizerEvents[_account].length > 0;
+        accountIsCustomer = customerPurchases[_account].length > 0;
+    }
+
 }
