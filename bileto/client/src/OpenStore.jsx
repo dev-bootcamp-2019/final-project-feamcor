@@ -14,6 +14,7 @@ class OpenStore extends Component {
     const { transactions, transactionStack } = this.props.drizzleState;
     const txHash = transactionStack[this.state.stackId];
     if (!txHash) return "...";
+    // console.log(transactions[txHash]);
     return transactions[txHash].status;
   };
 

@@ -15,29 +15,24 @@ import CancelEvent from "./CancelEvent";
 import logo from "./tickets.png";
 
 class App extends Component {
-  state = { loading: true, drizzleState: null };
-
-  constructor(props) {
-    super(props);
-    const { drizzle } = this.props;
-    if (drizzle.store.getState().drizzleStatus.initialized) {
-      const { events } = drizzle.contracts.Bileto;
-      const { Bileto } = drizzle.options.events;
-      for (let i = 0; i < Bileto.length; i++) {
-        const fn = events[Bileto[i]];
-        fn().on("data", event => {
-          this.track(event);
-        });
-      }
-    }
-  }
+  state = { loading: true, drizzleState: null, tracking: false };
 
   componentDidMount() {
     const { drizzle } = this.props;
     this.unsubscribe = drizzle.store.subscribe(() => {
       const drizzleState = drizzle.store.getState();
       if (drizzleState.drizzleStatus.initialized) {
-        this.setState({ loading: false, drizzleState });
+        if (this.state.tracking === false) {
+          const { events } = drizzle.contracts.Bileto;
+          const { Bileto } = drizzle.options.events;
+          for (let i = 0; i < Bileto.length; i++) {
+            console.log(`tracking event: ${Bileto[i]}`);
+            events[Bileto[i]]().on("data", event => {
+              this.track(event);
+            });
+          }
+        }
+        this.setState({ loading: false, drizzleState, tracking: true });
       }
     });
   }
