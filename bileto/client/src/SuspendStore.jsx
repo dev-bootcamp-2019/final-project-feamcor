@@ -26,20 +26,23 @@ class SuspendStore extends Component {
     }
 
     return (
-      <div className="card shadow text-white bg-warning text-center">
-        <div className="card-body">
+      <div className="card shadow text-white bg-warning text-center h-100">
+        <div className="card-header">
           <button
             type="button"
-            className="btn btn-outline-light btn-lg"
+            className="btn btn-outline-light btn-sm"
             onClick={this.handleOnClick}
           >
             <strong>SUSPEND</strong> store
           </button>
         </div>
-        <p>
-          Temporarily suspend store handling of events and ticket purchases.
-        </p>
-        <p className="font-weight-bold text-uppercase">{this.getTxStatus()}</p>
+        <span className="card-body small">
+          Temporarily suspend the handling of events and ticket purchases by the
+          store.
+        </span>
+        <span className="card-footer font-weight-bold text-uppercase">
+          {this.getTxStatus()}
+        </span>
       </div>
     );
   }

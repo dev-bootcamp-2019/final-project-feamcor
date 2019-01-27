@@ -24,20 +24,23 @@ class OpenStore extends Component {
     }
 
     return (
-      <div className="card shadow text-white bg-success text-center">
-        <div className="card-body">
+      <div className="card shadow text-white bg-success text-center h-100">
+        <div className="card-header">
           <button
             type="button"
-            className="btn btn-outline-light btn-lg"
+            className="btn btn-outline-light btn-sm"
             onClick={this.handleOnClick}
           >
             <strong>OPEN</strong> store
           </button>
         </div>
-        <p>
-          Enable, or resume, store for handling events and ticket purchases.
-        </p>
-        <p className="font-weight-bold text-uppercase">{this.getTxStatus()}</p>
+        <span className="card-body small">
+          Enable, or resume, the store for handling of events and ticket
+          purchases.
+        </span>
+        <span className="card-footer font-weight-bold text-uppercase">
+          {this.getTxStatus()}
+        </span>
       </div>
     );
   }

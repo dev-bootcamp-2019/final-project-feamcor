@@ -4,14 +4,36 @@ import StoreInfo from "./StoreInfo";
 import OpenStore from "./OpenStore";
 import SuspendStore from "./SuspendStore";
 import CloseStore from "./CloseStore";
+import CreateEvent from "./CreateEvent";
+import StartTicketSales from "./StartTicketSales";
+import SuspendTicketSales from "./SuspendTicketSales";
+import EndTicketSales from "./EndTicketSales";
+import CompleteEvent from "./CompleteEvent";
+import SettleEvent from "./SettleEvent";
+import CancelEvent from "./CancelEvent";
+
 import logo from "./tickets.png";
 
 class App extends Component {
   state = { loading: true, drizzleState: null };
 
+  constructor(props) {
+    super(props);
+    const { drizzle } = this.props;
+    if (drizzle.store.getState().drizzleStatus.initialized) {
+      const { events } = drizzle.contracts.Bileto;
+      const { Bileto } = drizzle.options.events;
+      for (let i = 0; i < Bileto.length; i++) {
+        const fn = events[Bileto[i]];
+        fn().on("data", event => {
+          this.track(event);
+        });
+      }
+    }
+  }
+
   componentDidMount() {
     const { drizzle } = this.props;
-
     this.unsubscribe = drizzle.store.subscribe(() => {
       const drizzleState = drizzle.store.getState();
       if (drizzleState.drizzleStatus.initialized) {
@@ -22,6 +44,10 @@ class App extends Component {
 
   componentWillUnmount() {
     this.unsubscribe();
+  }
+
+  track(event) {
+    console.log(event);
   }
 
   render() {
@@ -69,7 +95,7 @@ class App extends Component {
               />
             </div>
             <div className="col-4">
-              <div className="row mt-2">
+              <div className="row">
                 <div className="col">
                   <SuspendStore
                     drizzle={this.props.drizzle}
@@ -77,7 +103,7 @@ class App extends Component {
                   />
                 </div>
               </div>
-              <div className="row mt-2">
+              <div className="row mt-3">
                 <div className="col">
                   <CloseStore
                     drizzle={this.props.drizzle}
@@ -89,44 +115,56 @@ class App extends Component {
           </div>
           <div className="row mt-3">
             <div className="col-md-4">
-              <div className="card shadow">
-                <h5 className="card-header">Create Event</h5>
-                <div className="card-body">CreateEvent </div>
+              <div className="row">
+                <div className="col">
+                  <StartTicketSales
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
+                </div>
+              </div>
+              <div className="row mt-3">
+                <div className="col">
+                  <SuspendTicketSales
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
+                </div>
+              </div>
+              <div className="row mt-3">
+                <div className="col">
+                  <EndTicketSales
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
+                </div>
               </div>
             </div>
             <div className="col-md-8">
-              <div className="card shadow">
-                <div className="card-header">
-                  <form onSubmit={undefined}>
-                    <div className="form-row align-items-center">
-                      <div className="col-auto">
-                        <h5>Event</h5>
-                      </div>
-                      <div className="col-auto">
-                        <label className="sr-only" htmlFor="fetchEventInfo">
-                          Event ID
-                        </label>
-                        <div className="input-group mb-2">
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={undefined}
-                            onChange={undefined}
-                            id="fetchEventInfo"
-                            placeholder="Event ID"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-auto">
-                        <button type="submit" className="btn btn-primary mb-2">
-                          Fetch
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div className="card-body">FetchEventInfo </div>
-              </div>
+              <CreateEvent
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col-md-4">
+              <CompleteEvent
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
+            </div>
+            <div className="col-md-4">
+              <SettleEvent
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
+            </div>
+            <div className="col-md-4">
+              <CancelEvent
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
             </div>
           </div>
         </div>

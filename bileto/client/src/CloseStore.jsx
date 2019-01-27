@@ -26,21 +26,23 @@ class CloseStore extends Component {
     }
 
     return (
-      <div className="card shadow text-white bg-danger text-center">
-        <div className="card-body">
+      <div className="card shadow text-white bg-danger text-center h-100">
+        <div className="card-header">
           <button
             type="button"
-            className="btn btn-outline-light btn-lg"
+            className="btn btn-outline-light btn-sm"
             onClick={this.handleOnClick}
           >
             <strong>CLOSE</strong> store
           </button>
         </div>
-        <p>
-          Permanently close store, allowing only refunds. Store's settled and
-          excess balances are transferred to owner.
-        </p>
-        <p className="font-weight-bold text-uppercase">{this.getTxStatus()}</p>
+        <span className="card-body small">
+          Permanently close the store, allowing only customer refunds. Settled
+          and excess balances are transferred to owner.
+        </span>
+        <span className="card-footer font-weight-bold text-uppercase">
+          {this.getTxStatus()}
+        </span>
       </div>
     );
   }

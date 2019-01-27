@@ -58,23 +58,23 @@ class StoreInfo extends Component {
               {storeOwner}
             </li>
             <li className="list-group-item">
-              <strong>Settled: </strong>
+              <strong>Settled balance: </strong>
               {this.formatWeiToEther(storeSettledBalance)}
             </li>
             <li className="list-group-item">
-              <strong>Excess: </strong>
+              <strong>Excess balance: </strong>
               {this.formatWeiToEther(storeExcessBalance)}
             </li>
             <li className="list-group-item">
-              <strong>Refundable: </strong>
+              <strong>Refundable balance: </strong>
               {this.formatWeiToEther(storeRefundableBalance)}
             </li>
             <li className="list-group-item">
-              <strong># of Events: </strong>
+              <strong># of Events created so far: </strong>
               {storeCounterEvents}
             </li>
             <li className="list-group-item">
-              <strong># of Purchases: </strong>
+              <strong># of Purchases completed so far: </strong>
               {storeCounterPurchases}
             </li>
           </ul>

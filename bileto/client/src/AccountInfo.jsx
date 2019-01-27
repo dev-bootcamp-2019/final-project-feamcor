@@ -14,8 +14,7 @@ class AccountInfo extends Component {
   componentDidMount() {
     const { Bileto } = this.props.drizzle.contracts;
     const { accounts } = this.props.drizzleState;
-    const methodArgs = new Array(accounts[0]);
-    const dataKey = Bileto.methods.getAccountRole.cacheCall(...methodArgs);
+    const dataKey = Bileto.methods.getAccountRole.cacheCall(accounts[0]);
     this.setState({ dataKey });
   }
 
@@ -25,9 +24,8 @@ class AccountInfo extends Component {
       return "Loading...";
     }
 
-    const { Bileto } = this.props.drizzleState.contracts;
-
     const { accounts, accountBalances } = this.props.drizzleState;
+    const { Bileto } = this.props.drizzleState.contracts;
 
     const accountRole = Bileto.getAccountRole[this.state.dataKey];
     if (!accountRole || !accountRole.value) {
@@ -41,7 +39,7 @@ class AccountInfo extends Component {
     } = accountRole.value;
 
     return (
-      <div className="card shadow text-white bg-primary">
+      <div className="card shadow text-white bg-primary h-100">
         <h5 className="card-header">
           <strong>ACCOUNT</strong> information
         </h5>
@@ -56,13 +54,15 @@ class AccountInfo extends Component {
           </p>
           <p className="card-text">
             <strong>Roles: </strong>
-            {accountIsOwner && " OWNER "}
-            {accountIsOrganizer && " ORGANIZER "}
-            {accountIsCustomer && " CUSTOMER "}
-            {!accountIsOwner &&
-              !accountIsOrganizer &&
-              !accountIsCustomer &&
-              " NONE "}
+            <span className="card-text">
+              {accountIsOwner === true && " OWNER "}
+              {accountIsOrganizer === true && " ORGANIZER "}
+              {accountIsCustomer === true && " CUSTOMER "}
+              {accountIsOwner === false &&
+                accountIsOrganizer === false &&
+                accountIsCustomer === false &&
+                " NONE "}
+            </span>
           </p>
         </div>
       </div>
