@@ -11,18 +11,26 @@ class StoreInfo extends Component {
   }
 
   formatWeiToEther(_amount) {
-    let _output = this.props.drizzle.web3.utils.fromWei(
-      _amount.toString(),
-      "ether"
-    );
+    let _output = !_amount
+      ? "???"
+      : this.props.drizzle.web3.utils.fromWei(_amount.toString(), "ether");
     _output += " ETHER";
     return _output;
   }
 
   render() {
     const { Bileto } = this.props.drizzleState.contracts;
+
+    const { drizzleStatus, web3 } = this.props.drizzleState;
+    if (!drizzleStatus.initialized || web3.status !== "initialized") {
+      return "Loading...";
+    }
+
     const storeInfo = Bileto.fetchStoreInfo[this.state.dataKey];
-    if (!storeInfo) return "Loading...";
+    if (!storeInfo || !storeInfo.value) {
+      return "Loading...";
+    }
+
     const {
       storeStatus,
       storeName,
@@ -33,6 +41,7 @@ class StoreInfo extends Component {
       storeCounterEvents,
       storeCounterPurchases
     } = storeInfo.value;
+
     return (
       <div className="card shadow h-100">
         <h5 className="card-header">

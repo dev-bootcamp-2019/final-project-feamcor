@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import AccountInfo from "./AccountInfo";
+import AccountRoleInfo from "./AccountRoleInfo";
 import StoreInfo from "./StoreInfo";
 import logo from "./tickets.png";
 
@@ -44,10 +46,20 @@ class App extends Component {
         </nav>
         <div className="container">
           <div className="row mt-3">
-            <div className="col-12">
-              <div className="card shadow text-white bg-primary">
-                <h5 className="card-header">Account</h5>
-                <div className="card-body">AccountInfo</div>
+            <div className="col-8">
+              <AccountInfo
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
+            </div>
+            <div className="col-4">
+              <div className="row">
+                <div className="col">
+                  <AccountRoleInfo
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -61,7 +73,7 @@ class App extends Component {
             <div className="col-4">
               <div className="row">
                 <div className="col">
-                  <div className="card shadow text-white bg-success h-100">
+                  <div className="card shadow text-white bg-success">
                     <h5 className="card-header">Open Store</h5>
                     <div className="card-body">
                       <p className="card-text">
@@ -73,7 +85,7 @@ class App extends Component {
               </div>
               <div className="row mt-3">
                 <div className="col">
-                  <div className="card shadow text-white bg-warning h-100">
+                  <div className="card shadow text-white bg-warning">
                     <h5 className="card-header">Suspend Store</h5>
                     <div className="card-body">
                       <p className="card-text">
@@ -86,7 +98,7 @@ class App extends Component {
               </div>
               <div className="row mt-3">
                 <div className="col">
-                  <div className="card shadow text-white bg-danger h-100">
+                  <div className="card shadow text-white bg-danger">
                     <h5 className="card-header">Close Store</h5>
                     <div className="card-body">
                       <p className="card-text">
@@ -108,7 +120,7 @@ class App extends Component {
             <div className="col-md-8">
               <div className="card shadow">
                 <div className="card-header">
-                  <form onSubmit={console.log("onSubmit")}>
+                  <form onSubmit={undefined}>
                     <div className="form-row align-items-center">
                       <div className="col-auto">
                         <h5>Event</h5>
@@ -121,8 +133,8 @@ class App extends Component {
                           <input
                             type="text"
                             className="form-control"
-                            value={console.log("value")}
-                            onChange={console.log("onChange")}
+                            value={undefined}
+                            onChange={undefined}
                             id="fetchEventInfo"
                             placeholder="Event ID"
                           />
