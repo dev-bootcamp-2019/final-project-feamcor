@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import AccountInfo from "./AccountInfo";
-import AccountRoleInfo from "./AccountRoleInfo";
 import StoreInfo from "./StoreInfo";
+import OpenStore from "./OpenStore";
+import SuspendStore from "./SuspendStore";
+import CloseStore from "./CloseStore";
 import logo from "./tickets.png";
 
 class App extends Component {
@@ -53,14 +55,10 @@ class App extends Component {
               />
             </div>
             <div className="col-4">
-              <div className="row">
-                <div className="col">
-                  <AccountRoleInfo
-                    drizzle={this.props.drizzle}
-                    drizzleState={this.state.drizzleState}
-                  />
-                </div>
-              </div>
+              <OpenStore
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+              />
             </div>
           </div>
           <div className="row mt-3">
@@ -71,41 +69,20 @@ class App extends Component {
               />
             </div>
             <div className="col-4">
-              <div className="row">
+              <div className="row mt-2">
                 <div className="col">
-                  <div className="card shadow text-white bg-success">
-                    <h5 className="card-header">Open Store</h5>
-                    <div className="card-body">
-                      <p className="card-text">
-                        Enable store to manage events and ticket purchases.
-                      </p>
-                    </div>
-                  </div>
+                  <SuspendStore
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col">
-                  <div className="card shadow text-white bg-warning">
-                    <h5 className="card-header">Suspend Store</h5>
-                    <div className="card-body">
-                      <p className="card-text">
-                        Temporarily disable store, stopping events and ticket
-                        purchases.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="row mt-3">
-                <div className="col">
-                  <div className="card shadow text-white bg-danger">
-                    <h5 className="card-header">Close Store</h5>
-                    <div className="card-body">
-                      <p className="card-text">
-                        Permanently disable store, allowing only refunds.
-                      </p>
-                    </div>
-                  </div>
+                  <CloseStore
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                  />
                 </div>
               </div>
             </div>

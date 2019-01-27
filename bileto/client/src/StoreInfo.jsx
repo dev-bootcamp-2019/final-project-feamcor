@@ -19,12 +19,12 @@ class StoreInfo extends Component {
   }
 
   render() {
-    const { Bileto } = this.props.drizzleState.contracts;
-
     const { drizzleStatus, web3 } = this.props.drizzleState;
     if (!drizzleStatus.initialized || web3.status !== "initialized") {
       return "Loading...";
     }
+
+    const { Bileto } = this.props.drizzleState.contracts;
 
     const storeInfo = Bileto.fetchStoreInfo[this.state.dataKey];
     if (!storeInfo || !storeInfo.value) {
