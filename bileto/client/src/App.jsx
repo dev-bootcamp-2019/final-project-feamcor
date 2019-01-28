@@ -11,11 +11,27 @@ import EndTicketSales from "./EndTicketSales";
 import CompleteEvent from "./CompleteEvent";
 import SettleEvent from "./SettleEvent";
 import CancelEvent from "./CancelEvent";
+import EventInfo from "./EventInfo";
 
 import logo from "./tickets.png";
 
 class App extends Component {
-  state = { loading: true, drizzleState: null, tracking: false };
+  state = {
+    loading: true,
+    drizzleState: null,
+    tracking: false,
+    eventId: "",
+    purchaseId: ""
+  };
+
+  handleOnChange = _event => {
+    this.setState({ [_event.target.name]: _event.target.value });
+  };
+
+  constructor(props) {
+    super(props);
+    this.handleOnChange = this.handleOnChange.bind(this);
+  }
 
   componentDidMount() {
     const { drizzle } = this.props;
@@ -112,9 +128,34 @@ class App extends Component {
             <div className="col-md-4">
               <div className="row">
                 <div className="col">
+                  <div className="input-group">
+                    <div className="input-group-prepend">
+                      <span className="input-group-text" id="labelEventId">
+                        #
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      key="eventId"
+                      name="eventId"
+                      value={this.state.eventId}
+                      onChange={this.handleOnChange}
+                      min="1"
+                      className="form-control"
+                      placeholder="Event ID"
+                      aria-label="Event ID"
+                      aria-describedby="labelEventId"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="row mt-3">
+                <div className="col">
                   <StartTicketSales
                     drizzle={this.props.drizzle}
                     drizzleState={this.state.drizzleState}
+                    eventId={this.state.eventId}
                   />
                 </div>
               </div>
@@ -123,6 +164,7 @@ class App extends Component {
                   <SuspendTicketSales
                     drizzle={this.props.drizzle}
                     drizzleState={this.state.drizzleState}
+                    eventId={this.state.eventId}
                   />
                 </div>
               </div>
@@ -131,6 +173,7 @@ class App extends Component {
                   <EndTicketSales
                     drizzle={this.props.drizzle}
                     drizzleState={this.state.drizzleState}
+                    eventId={this.state.eventId}
                   />
                 </div>
               </div>
@@ -147,18 +190,30 @@ class App extends Component {
               <CompleteEvent
                 drizzle={this.props.drizzle}
                 drizzleState={this.state.drizzleState}
+                eventId={this.state.eventId}
               />
             </div>
             <div className="col-md-4">
               <SettleEvent
                 drizzle={this.props.drizzle}
                 drizzleState={this.state.drizzleState}
+                eventId={this.state.eventId}
               />
             </div>
             <div className="col-md-4">
               <CancelEvent
                 drizzle={this.props.drizzle}
                 drizzleState={this.state.drizzleState}
+                eventId={this.state.eventId}
+              />
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col">
+              <EventInfo
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+                eventId={this.state.eventId}
               />
             </div>
           </div>

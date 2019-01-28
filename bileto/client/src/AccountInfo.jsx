@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 class AccountInfo extends Component {
-  state = { dataKey: null };
+  state = { dataKey1: null, dataKey2: null, dataKey3: null };
 
   formatWeiToEther(_amount) {
     let _output = !_amount
@@ -11,11 +11,29 @@ class AccountInfo extends Component {
     return _output;
   }
 
-  componentDidMount() {
+  fetchData() {
     const { Bileto } = this.props.drizzle.contracts;
     const { accounts } = this.props.drizzleState;
-    const dataKey = Bileto.methods.getAccountRole.cacheCall(accounts[0]);
-    this.setState({ dataKey });
+    const dataKey1 = Bileto.methods.getAccountRole.cacheCall(accounts[0]);
+    const dataKey2 = Bileto.methods.getCountOrganizerEvents.cacheCall(
+      accounts[0]
+    );
+    const dataKey3 = Bileto.methods.getCountCustomerPurchases.cacheCall(
+      accounts[0]
+    );
+    this.setState({ dataKey1, dataKey2, dataKey3 });
+  }
+
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.drizzleState.accounts[0] !== prevProps.drizzleState.accounts[0]
+    ) {
+      this.fetchData();
+    }
   }
 
   render() {
@@ -27,8 +45,20 @@ class AccountInfo extends Component {
     const { accounts, accountBalances } = this.props.drizzleState;
     const { Bileto } = this.props.drizzleState.contracts;
 
-    const accountRole = Bileto.getAccountRole[this.state.dataKey];
+    const accountRole = Bileto.getAccountRole[this.state.dataKey1];
     if (!accountRole || !accountRole.value) {
+      return "Loading...";
+    }
+
+    const countOrganizerEvents =
+      Bileto.getCountOrganizerEvents[this.state.dataKey2];
+    if (!countOrganizerEvents || !countOrganizerEvents.value) {
+      return "Loading...";
+    }
+
+    const countCustomerPurchases =
+      Bileto.getCountCustomerPurchases[this.state.dataKey3];
+    if (!countCustomerPurchases || !countCustomerPurchases.value) {
       return "Loading...";
     }
 
@@ -37,6 +67,10 @@ class AccountInfo extends Component {
       accountIsOrganizer,
       accountIsCustomer
     } = accountRole.value;
+
+    const countEvents = countOrganizerEvents.value;
+
+    const countPurchases = countCustomerPurchases.value;
 
     return (
       <div className="card shadow text-white bg-primary h-100">
@@ -56,8 +90,14 @@ class AccountInfo extends Component {
             <strong>Roles: </strong>
             <span className="card-text">
               {accountIsOwner === true && " OWNER "}
-              {accountIsOrganizer === true && " ORGANIZER "}
-              {accountIsCustomer === true && " CUSTOMER "}
+              {accountIsOwner === true && accountIsOrganizer === true && "/"}
+              {accountIsOrganizer === true &&
+                " ORGANIZER (" + countEvents + " events)"}
+              {(accountIsOwner === true || accountIsOrganizer === true) &&
+                accountIsCustomer === true &&
+                "/"}
+              {accountIsCustomer === true &&
+                " CUSTOMER (" + countPurchases + " purchases)"}
               {accountIsOwner === false &&
                 accountIsOrganizer === false &&
                 accountIsCustomer === false &&

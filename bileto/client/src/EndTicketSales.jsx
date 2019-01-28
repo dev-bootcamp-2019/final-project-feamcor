@@ -1,26 +1,17 @@
 import React, { Component } from "react";
 
 class EndTicketSales extends Component {
-  state = { stackId: null, _eventId: "" };
+  state = { stackId: null };
 
   constructor(props) {
     super(props);
-    this.handleOnChange = this.handleOnChange.bind(this);
     this.handleOnClick = this.handleOnClick.bind(this);
   }
 
   handleOnClick = _event => {
     const { Bileto } = this.props.drizzle.contracts;
-    const { accounts } = this.props.drizzleState;
-    const stackId = Bileto.methods.endTicketSales.cacheSend(
-      this.state._eventId,
-      { from: accounts[0] }
-    );
+    const stackId = Bileto.methods.endTicketSales.cacheSend(this.props.eventId);
     this.setState({ stackId });
-  };
-
-  handleOnChange = _event => {
-    this.setState({ [_event.target.name]: _event.target.value });
   };
 
   getTxStatus = () => {
@@ -40,38 +31,13 @@ class EndTicketSales extends Component {
     return (
       <div className="card shadow border-danger text-center">
         <div className="card-body">
-          <h6>
-            <strong>END</strong> ticket sales
-          </h6>
-          <div className="input-group">
-            <div className="input-group-prepend">
-              <span className="input-group-text" id="labelEventId">
-                #
-              </span>
-            </div>
-            <input
-              type="number"
-              key="_eventId"
-              name="_eventId"
-              value={this.state._eventId}
-              onChange={this.handleOnChange}
-              min="1"
-              className="form-control"
-              placeholder="Event ID"
-              aria-label="Event ID"
-              aria-describedby="labelEventId"
-              required
-            />
-            <div className="input-group-append">
-              <button
-                type="button"
-                className="btn btn-danger btn-sm"
-                onClick={this.handleOnClick}
-              >
-                submit
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="btn btn-danger btn-lg"
+            onClick={this.handleOnClick}
+          >
+            <strong>END</strong> ticket sales{" "}
+          </button>
         </div>
         <span className="card-footer font-weight-bold text-uppercase">
           {this.getTxStatus()}

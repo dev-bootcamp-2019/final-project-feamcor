@@ -45,7 +45,7 @@ class StoreInfo extends Component {
     return (
       <div className="card shadow h-100">
         <h5 className="card-header">
-          <strong>{storeName}</strong> store information
+          Store: <strong>{storeName}</strong>
         </h5>
         <div className="card-body">
           <ul className="list-group list-group-flush">

@@ -31,7 +31,7 @@ class CloseStore extends Component {
         <div className="card-header">
           <button
             type="button"
-            className="btn btn-outline-light btn-sm"
+            className="btn btn-outline-light"
             onClick={this.handleOnClick}
           >
             <strong>CLOSE</strong> store
