@@ -525,8 +525,8 @@ A list of possible enhancements for this contract are:
   - [ ] Write a sentence or two explaining what the tests are covering, and explain why those tests were written.
 - [x] A development server to serve the front-end interface of the application.
   - [x] It can be something as simple as the [lite-server](https://www.npmjs.com/package/lite-server) used in the [Truffle Pet Shop tutorial](https://truffleframework.com/tutorials/pet-shop).
-- [ ] A document [design_pattern_decisions.md](design_pattern_decisions.md) that explains the design patterns chosen.
-- [ ] A document [avoiding_common_attacks.md](avoiding_common_attacks.md) that explains what measures were taken to ensure that the contracts are not susceptible to common attacks.
+- [x] A document [design_pattern_decisions.md](design_pattern_decisions.md) that explains the design patterns chosen.
+- [x] A document [avoiding_common_attacks.md](avoiding_common_attacks.md) that explains what measures were taken to ensure that the contracts are not susceptible to common attacks.
 - [x] Implement/use a library or an EthPM package.
   - [ ] If the project does not require a library or an EthPM package, demonstrate how it would do that in a contract called `LibraryDemo.sol`.
 - [ ] Develop your application and run the other projects during evaluation in a VirtualBox VM running Ubuntu 16.04 to reduce the chances of runtime environment variables.
@@ -548,19 +548,19 @@ A list of possible enhancements for this contract are:
 
 - [x] Write 5 tests for each contract you wrote;
   - [x] Solidity **or** JavaScript.
-- [ ] Explain why you wrote those tests;
+- [x] Explain why you wrote those tests;
   - [x] Tests run with `truffle test`.
 
 ### Design Patterns
 
 - [x] Implement a circuit breaker (emergency stop) pattern.
-- [ ] What other design patterns have you used / not used?
-  - [ ] Why did you choose the patterns that you did?
+- [x] What other design patterns have you used / not used?
+  - [x] Why did you choose the patterns that you did?
   - [ ] Why not others?
 
 ### Security Tools / Common Attacks
 
-- [ ] Explain what measures you have taken to ensure that your contracts are not susceptible to common attacks.
+- [x] Explain what measures you have taken to ensure that your contracts are not susceptible to common attacks.
 
 ### Use a Library or Extend a Contract
 

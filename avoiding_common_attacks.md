@@ -21,3 +21,7 @@
 # NO USE OF LOOPS
 
 - Fetch functions made available in order to retrieve individuals of an array or mapping.
+
+# STATIC ANALYSIS
+
+- Use of linters and other tools like Mythril, Solium and Solhint.
