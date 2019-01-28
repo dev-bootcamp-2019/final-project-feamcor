@@ -1,14 +1,19 @@
 import React, { Component } from "react";
 
-class CloseStore extends Component {
+class RefundPurchase extends Component {
   state = { stackId: null };
+
+  constructor(props) {
+    super(props);
+    this.handleOnClick = this.handleOnClick.bind(this);
+  }
 
   handleOnClick = _event => {
     const { Bileto } = this.props.drizzle.contracts;
-    const { accounts } = this.props.drizzleState;
-    const stackId = Bileto.methods.closeStore.cacheSend({
-      from: accounts[0]
-    });
+    const stackId = Bileto.methods.refundPurchase.cacheSend(
+      this.props.eventId,
+      this.props.purchaseId
+    );
     this.setState({ stackId });
   };
 
@@ -27,20 +32,16 @@ class CloseStore extends Component {
     }
 
     return (
-      <div className="card shadow text-white bg-danger text-center h-100">
-        <div className="card-header">
+      <div className="card shadow border-dark text-center h-100">
+        <div className="card-body">
           <button
             type="button"
-            className="btn btn-outline-light btn-block"
+            className="btn btn-warning btn-block"
             onClick={this.handleOnClick}
           >
-            <strong>CLOSE</strong> store
+            <strong>REFUND</strong> purchase #{this.props.purchaseId}
           </button>
         </div>
-        <span className="card-body small">
-          Permanently close the store, allowing only customer refunds. Settled
-          and excess balances are transferred to owner.
-        </span>
         <span className="card-footer font-weight-bold text-uppercase">
           {this.getTxStatus()}
         </span>
@@ -49,4 +50,4 @@ class CloseStore extends Component {
   }
 }
 
-export default CloseStore;
+export default RefundPurchase;

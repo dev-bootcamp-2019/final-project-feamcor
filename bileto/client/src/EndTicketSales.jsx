@@ -29,14 +29,14 @@ class EndTicketSales extends Component {
     }
 
     return (
-      <div className="card shadow border-danger text-center">
+      <div className="card shadow border-dark text-center h-100">
         <div className="card-body">
           <button
             type="button"
-            className="btn btn-danger btn-lg"
+            className="btn btn-outline-danger btn-block"
             onClick={this.handleOnClick}
           >
-            <strong>END</strong> ticket sales{" "}
+            <strong>END</strong> sales #{this.props.eventId}
           </button>
         </div>
         <span className="card-footer font-weight-bold text-uppercase">

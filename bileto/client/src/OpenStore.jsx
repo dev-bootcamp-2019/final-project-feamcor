@@ -29,7 +29,7 @@ class OpenStore extends Component {
         <div className="card-header">
           <button
             type="button"
-            className="btn btn-outline-light"
+            className="btn btn-outline-light btn-block"
             onClick={this.handleOnClick}
           >
             <strong>OPEN</strong> store

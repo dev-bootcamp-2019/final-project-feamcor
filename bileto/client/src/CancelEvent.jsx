@@ -33,10 +33,10 @@ class CancelEvent extends Component {
         <div className="card-body">
           <button
             type="button"
-            className="btn btn-light btn-lg"
+            className="btn btn-outline-light btn-block"
             onClick={this.handleOnClick}
           >
-            <strong>CANCEL</strong> event
+            <strong>CANCEL</strong> event #{this.props.eventId}
           </button>
         </div>
         <span className="card-footer font-weight-bold text-uppercase">

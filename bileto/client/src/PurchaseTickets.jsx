@@ -1,14 +1,12 @@
 import React, { Component } from "react";
 
-class CreateEvent extends Component {
+class PurchaseTickets extends Component {
   state = {
     stackId: null,
+    _quantity: "",
     _externalId: "",
-    _organizer: "",
-    _name: "",
-    _storeIncentive: "",
-    _ticketPrice: "",
-    _ticketsOnSale: ""
+    _customerId: "",
+    _ticketPrice: ""
   };
 
   constructor(props) {
@@ -19,14 +17,20 @@ class CreateEvent extends Component {
 
   handleOnClick = _event => {
     const { Bileto } = this.props.drizzle.contracts;
-    const _incentive = parseInt(this.state._storeIncentive, 10) * 100;
-    const stackId = Bileto.methods.createEvent.cacheSend(
+    const quantity = parseInt(this.state._quantity, 10);
+    const price = parseFloat(this.state._ticketPrice);
+    const total = quantity * price;
+    const value = this.props.drizzle.web3.utils.toWei(
+      total.toString(),
+      "ether"
+    );
+    const stackId = Bileto.methods.purchaseTickets.cacheSend(
+      this.props.eventId,
+      this.state._quantity,
       this.state._externalId,
-      this.state._organizer,
-      this.state._name,
-      _incentive.toString(),
-      this.props.drizzle.web3.utils.toWei(this.state._ticketPrice, "ether"),
-      this.state._ticketsOnSale
+      new Date().getTime().toString(),
+      this.state._customerId,
+      { value }
     );
     this.setState({ stackId });
   };
@@ -41,9 +45,9 @@ class CreateEvent extends Component {
     if (!txHash) return "...";
     // console.log(transactions[txHash]);
     if (transactions[txHash].status === "success") {
-      const eventId =
-        transactions[txHash].receipt.events.EventCreated.returnValues._id;
-      return `EVENT #${eventId}`;
+      const purchaseId =
+        transactions[txHash].receipt.events.PurchaseCompleted.returnValues._id;
+      return `PURCHASE #${purchaseId}`;
     } else {
       return transactions[txHash].status;
     }
@@ -57,27 +61,8 @@ class CreateEvent extends Component {
 
     return (
       <div className="card shadow text-white bg-info h-100">
-        <h5 className="card-header">CREATE event</h5>
+        <h5 className="card-header">PURCHASE tickets</h5>
         <div className="card-body">
-          <div className="input-group mb-2">
-            <div className="input-group-prepend">
-              <span className="input-group-text" id="labelEventName">
-                name
-              </span>
-            </div>
-            <input
-              type="text"
-              key="_name"
-              name="_name"
-              value={this.state._name}
-              onChange={this.handleOnChange}
-              className="form-control"
-              placeholder="Event Name"
-              aria-label="Event Name"
-              aria-describedby="labelEventName"
-              required
-            />
-          </div>
           <div className="input-group mb-2">
             <div className="input-group-prepend">
               <span className="input-group-text" id="labelExternalId">
@@ -91,48 +76,48 @@ class CreateEvent extends Component {
               value={this.state._externalId}
               onChange={this.handleOnChange}
               className="form-control"
-              placeholder="Event External ID"
-              aria-label="Event External ID"
+              placeholder="Purchase External ID"
+              aria-label="Purchase External ID"
               aria-describedby="labelExternalId"
               required
             />
           </div>
           <div className="input-group mb-2">
             <div className="input-group-prepend">
-              <span className="input-group-text" id="labelOrganizer">
-                organizer
+              <span className="input-group-text" id="labelCustomerId">
+                customer id
               </span>
             </div>
             <input
               type="text"
-              key="_organizer"
-              name="_organizer"
-              value={this.state._organizer}
+              key="_customerId"
+              name="_customerId"
+              value={this.state._customerId}
               onChange={this.handleOnChange}
+              min="1"
               className="form-control"
-              placeholder="Event Organizer Address"
-              aria-label="Event Organizer Address"
-              aria-describedby="labelOrganizer"
+              placeholder="Customer ID"
+              aria-label="Customer Id"
+              aria-describedby="labelCustomerId"
               required
             />
           </div>
           <div className="input-group mb-2">
             <div className="input-group-prepend">
-              <span className="input-group-text" id="labelTicketsOnSale">
-                tickets on sale
+              <span className="input-group-text" id="labelQuantity">
+                quantity
               </span>
             </div>
             <input
               type="number"
-              key="_ticketsOnSale"
-              name="_ticketsOnSale"
-              value={this.state._ticketsOnSale}
+              key="_quantity"
+              name="_quantity"
+              value={this.state._quantity}
               onChange={this.handleOnChange}
-              min="1"
               className="form-control"
-              placeholder="Quantity of Tickets on Sale"
-              aria-label="Quantity of Tickets on Sale"
-              aria-describedby="labelTicketsOnSale"
+              placeholder="Quantity"
+              aria-label="Quantity"
+              aria-describedby="labelQuantity"
               required
             />
           </div>
@@ -158,28 +143,6 @@ class CreateEvent extends Component {
               required
             />
           </div>
-          <div className="input-group mb-2">
-            <div className="input-group-prepend">
-              <span className="input-group-text" id="labelStoreIncentive">
-                store incentive (in %)
-              </span>
-            </div>
-            <input
-              type="number"
-              key="_storeIncentive"
-              name="_storeIncentive"
-              value={this.state._storeIncentive}
-              onChange={this.handleOnChange}
-              min="0"
-              max="100"
-              step="1"
-              className="form-control"
-              placeholder="Percentage Paid to Store as Incentive"
-              aria-label="Percentage Paid to Store as Incentive"
-              aria-describedby="labelStoreIncentive"
-              required
-            />
-          </div>
           <button
             type="button"
             className="btn btn-light"
@@ -196,4 +159,4 @@ class CreateEvent extends Component {
   }
 }
 
-export default CreateEvent;
+export default PurchaseTickets;

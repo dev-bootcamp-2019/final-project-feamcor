@@ -12,6 +12,11 @@ import CompleteEvent from "./CompleteEvent";
 import SettleEvent from "./SettleEvent";
 import CancelEvent from "./CancelEvent";
 import EventInfo from "./EventInfo";
+import PurchaseTickets from "./PurchaseTickets";
+import CancelPurchase from "./CancelPurchase";
+import RefundPurchase from "./RefundPurchase";
+import CheckIn from "./CheckIn";
+import PurchaseInfo from "./PurchaseInfo";
 
 import logo from "./tickets.png";
 
@@ -24,8 +29,8 @@ class App extends Component {
     purchaseId: ""
   };
 
-  handleOnChange = _event => {
-    this.setState({ [_event.target.name]: _event.target.value });
+  handleOnChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
   };
 
   constructor(props) {
@@ -128,30 +133,6 @@ class App extends Component {
             <div className="col-md-4">
               <div className="row">
                 <div className="col">
-                  <div className="input-group">
-                    <div className="input-group-prepend">
-                      <span className="input-group-text" id="labelEventId">
-                        #
-                      </span>
-                    </div>
-                    <input
-                      type="number"
-                      key="eventId"
-                      name="eventId"
-                      value={this.state.eventId}
-                      onChange={this.handleOnChange}
-                      min="1"
-                      className="form-control"
-                      placeholder="Event ID"
-                      aria-label="Event ID"
-                      aria-describedby="labelEventId"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="row mt-3">
-                <div className="col">
                   <StartTicketSales
                     drizzle={this.props.drizzle}
                     drizzleState={this.state.drizzleState}
@@ -159,7 +140,7 @@ class App extends Component {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-5">
                 <div className="col">
                   <SuspendTicketSales
                     drizzle={this.props.drizzle}
@@ -168,7 +149,7 @@ class App extends Component {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-5">
                 <div className="col">
                   <EndTicketSales
                     drizzle={this.props.drizzle}
@@ -214,6 +195,100 @@ class App extends Component {
                 drizzle={this.props.drizzle}
                 drizzleState={this.state.drizzleState}
                 eventId={this.state.eventId}
+              />
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col">
+              <div className="input-group">
+                <div className="input-group-prepend">
+                  <span className="input-group-text" id="labelEventId">
+                    #
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  key="eventId"
+                  name="eventId"
+                  value={this.state.eventId}
+                  onChange={this.handleOnChange}
+                  min="1"
+                  className="form-control"
+                  placeholder="Event ID"
+                  aria-label="Event ID"
+                  aria-describedby="labelEventId"
+                  required
+                />
+              </div>
+            </div>
+            <div className="col">
+              <div className="input-group">
+                <div className="input-group-prepend">
+                  <span className="input-group-text" id="labelPurchaseId">
+                    #
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  key="purchaseId"
+                  name="purchaseId"
+                  value={this.state.purchaseId}
+                  onChange={this.handleOnChange}
+                  min="1"
+                  className="form-control"
+                  placeholder="Purchase ID"
+                  aria-label="Purchase ID"
+                  aria-describedby="labelPurchaseId"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col">
+              <PurchaseInfo
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+                purchaseId={this.state.purchaseId}
+              />
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col-md-8">
+              <PurchaseTickets
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+                eventId={this.state.eventId}
+              />
+            </div>
+            <div className="col-md-4">
+              <div className="row">
+                <div className="col">
+                  <CancelPurchase
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                    purchaseId={this.state.purchaseId}
+                  />
+                </div>
+              </div>
+              <div className="row mt-3">
+                <div className="col">
+                  <RefundPurchase
+                    drizzle={this.props.drizzle}
+                    drizzleState={this.state.drizzleState}
+                    eventId={this.state.eventId}
+                    purchaseId={this.state.purchaseId}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row mt-3">
+            <div className="col">
+              <CheckIn
+                drizzle={this.props.drizzle}
+                drizzleState={this.state.drizzleState}
+                purchaseId={this.state.purchaseId}
               />
             </div>
           </div>
