@@ -641,7 +641,6 @@ contract Bileto is Ownable, ReentrancyGuard {
         external
         view
         validEventId(_eventId)
-        onlyOwnerOrOrganizer(_eventId)
         returns (
             uint eventStatus,
             bytes32 eventExternalId,
@@ -669,7 +668,6 @@ contract Bileto is Ownable, ReentrancyGuard {
         external
         view
         validEventId(_eventId)
-        onlyOwnerOrOrganizer(_eventId)
         returns (
             uint eventStatus,
             uint eventTicketsSold,
@@ -731,8 +729,8 @@ contract Bileto is Ownable, ReentrancyGuard {
         view
         returns (uint countEvents)
     {
-        require(msg.sender == owner() || msg.sender == _organizer,
-            "ERROR-039: not allowed to retrieve such information");
+        // require(msg.sender == owner() || msg.sender == _organizer,
+        //     "ERROR-039: not allowed to retrieve such information");
         countEvents = organizerEvents[_organizer].length;
         return countEvents;
     }
@@ -762,8 +760,8 @@ contract Bileto is Ownable, ReentrancyGuard {
         view
         returns (uint countPurchases)
     {
-        require(msg.sender == owner() || msg.sender == _customer,
-            "ERROR-042: not allowed to retrieve such information");
+        // require(msg.sender == owner() || msg.sender == _customer,
+        //     "ERROR-042: not allowed to retrieve such information");
         countPurchases = customerPurchases[_customer].length;
         return countPurchases;
     }
