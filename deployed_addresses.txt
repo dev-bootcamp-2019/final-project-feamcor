@@ -1,1 +1,62 @@
+RINKEBY - BILETO SMART CONTRACT
+transaction hash:    0x8e2be04f12363150f8e4e995bd50c29cfb9ea82827025d89b52075c2246ffb82
+contract address:    0x2821dc1805f63824f6C5C5486786C923860e26AB
+account:             0xF1BD9268d37D9dbc748b8D0a8556F72d1b331E02
 
+OUTPUT OF TRUFFLE MIGRATE
+
+Starting migrations...
+======================
+> Network name:    'rinkeby'
+> Network id:      4
+> Block gas limit: 7004702
+
+
+1_initial_migration.js
+======================
+
+   Deploying 'Migrations'
+   ----------------------
+   > transaction hash:    0xf2ead09c0efc25f74bbdccaf98614cb1f15ffbc2f473ecb20b07edd4fc296950
+   > Blocks: 0            Seconds: 5
+   > contract address:    0x7838d7fb7Bba8009C5384c2929F98e50ff76E397
+   > account:             0xF1BD9268d37D9dbc748b8D0a8556F72d1b331E02
+   > balance:             1.092280984
+   > gas used:            221171
+   > gas price:           20 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00442342 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.00442342 ETH
+
+
+2_deploy_contracts.js
+=====================
+
+   Deploying 'Bileto'
+   ------------------
+   > transaction hash:    0x8e2be04f12363150f8e4e995bd50c29cfb9ea82827025d89b52075c2246ffb82
+   > Blocks: 0            Seconds: 8
+   > contract address:    0x2821dc1805f63824f6C5C5486786C923860e26AB
+   > account:             0xF1BD9268d37D9dbc748b8D0a8556F72d1b331E02
+   > balance:             0.989444084
+   > gas used:            5099916
+   > gas price:           20 gwei
+   > value sent:          0 ETH
+   > total cost:          0.10199832 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.10199832 ETH
+
+
+Summary
+=======
+> Total deployments:   2
+> Final cost:          0.10642174 ETH
