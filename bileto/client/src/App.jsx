@@ -42,7 +42,7 @@ class App extends Component {
           const { events } = drizzle.contracts.Bileto;
           const { Bileto } = drizzle.options.events;
           for (let i = 0; i < Bileto.length; i++) {
-            console.log(`tracking event: ${Bileto[i]}`);
+            // console.log(`tracking event: ${Bileto[i]}`);
             events[Bileto[i]]().on("data", event => {
               this.track(event);
             });
